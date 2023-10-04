@@ -1,0 +1,10 @@
+- Tasks - 4-Oct
+  - [ ] _[[For all]]_ Read the paper- Focus on the abstract, conclusion, Contribution, overall philosophy
+  - [ ] _[[Sachin]]_ Previous attempts - What improvement was made by LipNet? and why?
+  - [ ] _[[Raunav]]_ Architecture
+    - CNN + GRU
+    - Can we improve by using Transformer?
+  - [ ] _[[Sachin]]_ Evaluation criteria of the model. Can we evaluate the same way?
+  - [ ] _[[Raunav]]_ Figure out _saliency maps_?
+  - [ ] _[[Rizwan]]_ Find a repo? Look at the video on YouTube
+  - [ ] _[[Concluding task]]_ Need to do using PyTorch or TF depends
