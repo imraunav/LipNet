@@ -163,3 +163,8 @@ cython_debug/
 *.mpg
 *.align
 *.zip
+
+# some mac specific stuff
+
+.DS_Store
+Thumbs.db
