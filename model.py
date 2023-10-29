@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.utils.data import Dataset, DataLoader
 
 
 class LipNet(nn.Module):
@@ -38,10 +37,9 @@ class LipNet(nn.Module):
         self.pred = nn.Linear(256 * 2, 27 + 1)
 
     def forward(self, x):
-
         # normalize data first
         x = x / 255.0
-        
+
         # (B, T, H, W, C)->(B, C, T, H, W)
         x = x.permute(0, 4, 1, 2, 3)
 
