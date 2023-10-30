@@ -64,13 +64,13 @@ def train(model, net, device):
 
             tot_iter = i_iter + epoch * len(dataloader)
 
-            # fix this code
-
             pred_txt = prediction(y)
 
             truth_txt = [
                 ctcdecoder.ctc_arr2txt(align[_], start=1) for _ in range(align.size(0))
             ]
+            print(pred_txt)
+            print(truth_txt)
             train_wer.extend(dataset.wer(pred_txt, truth_txt))
 
             if tot_iter % hyperparameters.display == 0:
