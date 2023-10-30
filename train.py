@@ -25,7 +25,7 @@ def train(model, net, device):
     base_learning_rate = hyperparameters.base_learning_rate
     max_epoch = hyperparameters.max_epoch
     if phase == "train":
-        shuffle = True
+        shuffle = False
     else:
         shuffle = False
 
