@@ -40,6 +40,7 @@ def train(model, net, device):
 
     train_wer = []
     for epoch in range(max_epoch):
+        print("Epoch: ", epoch)
         i_iter = 0
         for data in dataloader:
             i_iter += 1
@@ -69,8 +70,8 @@ def train(model, net, device):
             truth_txt = [
                 ctcdecoder.ctc_arr2txt(align[_], start=1) for _ in range(align.size(0))
             ]
-            print(len(pred_txt))
-            print(len(truth_txt))
+            # print(len(pred_txt))
+            # print(len(truth_txt))
             train_wer.extend(dataset.wer(pred_txt, truth_txt))
 
             if tot_iter % hyperparameters.display == 0:
