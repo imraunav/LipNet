@@ -21,7 +21,7 @@ class CTCCoder:
         txt = []
         for n in arr:
             if(prev != n and n >= start):
-                if(len(txt) > 0 and txt[-1] == ' ' and self.int2char[n] == ' '):
+                if(len(txt) > 0 and txt[-1] == ' ' and self.int2char[int(n)] == ' '):
                     pass
                 else:
                     txt.append(self.int2char[int(n)]) # just a safeguard, added int
