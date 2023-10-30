@@ -25,13 +25,13 @@ def train(model, net, device):
     base_learning_rate = hyperparameters.base_learning_rate
     max_epoch = hyperparameters.max_epoch
     if phase == "train":
-        shuffle = False
+        shuffle = True
     else:
         shuffle = False
 
     # instantiate dataset and dataloader
     dataset = LipDataset(path, vid_pad, align_pad, phase)
-    dataloader = DataLoader(dataset, batch_size, shuffle, num_workers)
+    dataloader = DataLoader(dataset, batch_size, shuffle)
 
     optimizer = optim.Adam(model.parameters(), lr=base_learning_rate, amsgrad=True)
     ctc = nn.CTCLoss()
