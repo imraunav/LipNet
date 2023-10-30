@@ -44,11 +44,11 @@ def train(model, net, device):
         for data in dataloader:
             i_iter += 1
             model.train()
-            dataset.__getitem__()
-            vid = input.get("vid").to(device)
-            align = input.get("align").to(device)
-            vid_len = input.get("vid_len").to(device)
-            align_len = input.get("align_len").to(device)
+            # dataset.__getitem__()
+            vid = data.get("vid").to(device)
+            align = data.get("align").to(device)
+            vid_len = data.get("vid_len").to(device)
+            align_len = data.get("align_len").to(device)
 
             optimizer.zero_grad()
             y = net(vid)
@@ -150,11 +150,11 @@ def test(model, net):
         cer = []
         crit = nn.CTCLoss()
         tic = time.time()
-        for i_iter, input in enumerate(dataloader):
-            vid = input.get("vid").cuda()
-            txt = input.get("txt").cuda()
-            vid_len = input.get("vid_len").cuda()
-            txt_len = input.get("txt_len").cuda()
+        for i_iter, data in enumerate(dataloader):
+            vid = data.get("vid").cuda()
+            txt = data.get("txt").cuda()
+            vid_len = data.get("vid_len").cuda()
+            txt_len = data.get("txt_len").cuda()
 
             y = net(vid)
 
