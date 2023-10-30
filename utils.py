@@ -104,11 +104,11 @@ class LipDataset(Dataset):
             array.append(np.zeros(size))
         return np.stack(array, axis=0)
     
-    def wer(predict, truth):        
+    def wer(self, predict, truth):        
         word_pairs = [(p[0].split(' '), p[1].split(' ')) for p in zip(predict, truth)]
         wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
         return wer
         
-    def cer(predict, truth):        
+    def cer(self, predict, truth):        
         cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
         return cer

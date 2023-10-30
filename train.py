@@ -69,8 +69,8 @@ def train(model, net, device):
             truth_txt = [
                 ctcdecoder.ctc_arr2txt(align[_], start=1) for _ in range(align.size(0))
             ]
-            print(pred_txt)
-            print(truth_txt)
+            print(len(pred_txt))
+            print(len(truth_txt))
             train_wer.extend(dataset.wer(pred_txt, truth_txt))
 
             if tot_iter % hyperparameters.display == 0:
