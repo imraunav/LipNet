@@ -24,7 +24,7 @@ class CTCCoder:
                 if(len(txt) > 0 and txt[-1] == ' ' and self.int2char[n] == ' '):
                     pass
                 else:
-                    txt.append(self.int2char[n])
+                    txt.append(self.int2char[int(n)]) # just a safeguard, added int
             prev = n
         return ''.join(txt).strip()
 
