@@ -7,7 +7,7 @@ class CTCCoder:
     def __init__(self, start = 1):
         self.vocab = list(" abcdefghijklmnopqrstuvwxyz")
         self.char2int = {c: i for i, c in enumerate(self.vocab, start=start)}
-        self.int2char = {i: c for i, c in self.char2int.items()}
+        self.int2char = {i: c for c, i in self.char2int.items()}
 
     def encode_char(self, charecter:list):
         return [self.char2int[str(x)] for x in charecter] # just a safeguard, added str
