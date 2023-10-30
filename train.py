@@ -69,7 +69,7 @@ def train(model, net, device):
             pred_txt = prediction(y)
 
             truth_txt = [
-                dataset.arr2txt(align[_], start=1) for _ in range(align.size(0))
+                ctcdecoder.ctc_arr2txt(align[_], start=1) for _ in range(align.size(0))
             ]
             train_wer.extend(dataset.wer(pred_txt, truth_txt))
 
@@ -172,7 +172,8 @@ def test(model, net):
             loss_list.append(loss)
             pred_txt = prediction(y)
 
-            truth_txt = [dataset.arr2txt(txt[_], start=1) for _ in range(txt.size(0))]
+            ctcdecoder = CTCCoder()
+            truth_txt = [ctcdecoder.ctc_arr2txt(txt[_], start=1) for _ in range(txt.size(0))]
             wer.extend(dataset.wer(pred_txt, truth_txt))
             cer.extend(dataset.cer(pred_txt, truth_txt))
             if i_iter % hyperparameters.display == 0:
