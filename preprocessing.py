@@ -10,10 +10,10 @@ class CTCCoder:
         self.int2char = {i: c for i, c in self.char2int.items()}
 
     def encode_char(self, charecter:list):
-        return [self.char2int[x] for x in charecter]
+        return [self.char2int[np.array(x)] for x in charecter]
 
     def decode_char(self, integer:list):
-        return [self.int2char[x] for x in integer]
+        return [self.int2char[int(x)] for x in integer] # just a safeguard, added int
     
     def ctc_arr2txt(self, arr, start=1):
         # self.int2char = {i+start : x for i, x in enumerate(' abcdefghijklmnopqrstuvwxyz')}
