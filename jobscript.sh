@@ -3,9 +3,9 @@
 #SBATCH -N 1 
 #SBATCH --ntasks-per-node=8 #number of cores per node
 #SBATCH --time=1-00:00:00 
-#SBATCH --job-name=ScSR  #change name of ur job
+#SBATCH --job-name=LipNet  #change name of ur job
 #SBATCH --output=output  #change name of ur output file
-#SBATCH --partition=hm  #there are various partition. U can change various GPUs
+#SBATCH --partition=gpu  #there are various partition. U can change various GPUs
 #SBATCH --gres=gpu:1 #same as above
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=t22104@students.iitmandi.ac.in
