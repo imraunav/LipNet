@@ -28,8 +28,8 @@ class LipNet(nn.Module):
             padding=(1, 1, 1),
         )
         self.gru1 = nn.GRU(
-            input_size=96 * 4 * 8, hidden_size=256, num_layers=1, bidirectional=True
-        )
+            input_size=1728, hidden_size=256, num_layers=1, bidirectional=True
+        ) #96 * 4 * 8
         # 2 because of bi-direction
         self.gru2 = nn.GRU(
             input_size=256 * 2, hidden_size=256, num_layers=1, bidirectional=True
