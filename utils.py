@@ -77,7 +77,10 @@ class LipDataset(Dataset):
         for f in frames:
             lip = lipextractor.findlip(f)
             # resize each lip frame to same size
-            lip = cv2.resize(lip, dsize=lip_size)
+            if lip is None:
+                lip = np.zeros(*lip_size, 3)
+            else:
+                lip = cv2.resize(lip, dsize=lip_size)
             lips.append(lip)
         return lips
 
