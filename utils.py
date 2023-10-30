@@ -47,7 +47,7 @@ class LipDataset(Dataset):
         vid_path = os.path.join(self.vid_path, spk, fname + ".mpg")
         align_path = os.path.join(self.align_path, spk, fname + ".align")
 
-        vid = self._load_video(vid_path, lip_size=(64, 32))
+        vid = self._load_video(vid_path, lip_size=(100, 50))
         align = self._load_align(align_path)
 
         if self.phase == "train":
