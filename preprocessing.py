@@ -30,10 +30,10 @@ class CTCCoder:
 
 
 def HorizontalFlip(batch_img, p=0.5):
-    batch_img = np.array(batch_img)  # convenience
+    # batch_img = np.array(batch_img)  # convenience
     # (T, H, W, C)
     if np.random.random() > p:
-        batch_img = batch_img[:, :, ::-1, ...]
+        batch_img = [vid[:, ::-1, ...] for vid in batch_img]
     return batch_img
 
 
