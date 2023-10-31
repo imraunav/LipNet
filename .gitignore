@@ -163,6 +163,7 @@ cython_debug/
 *.mpg
 *.align
 *.zip
+*.png
 
 # some mac specific stuff
 
