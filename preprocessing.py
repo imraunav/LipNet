@@ -29,11 +29,11 @@ class CTCCoder:
         return "".join(txt).strip()
 
 
-def HorizontalFlip(batch_img, p=0.5):
+def HorizontalFlip(frames, p=0.5):
     # batch_img = np.array(batch_img)  # convenience
     # (T, H, W, C)
     if np.random.random() > p:
-        batch_img = [vid[:, ::-1, ...] for vid in batch_img]
+        batch_img = [frame[:, ::-1, ...] for frame in frames]
     return batch_img
 
 
@@ -95,5 +95,6 @@ class LipDetector:
             return lip_region
 
         else:
-            np.zeros((100, 100, 3)) # dummy blank frame
+            # np.zeros((100, 100, 3)) # dummy blank frame
+            return None
             # print("No face detected in the image.")

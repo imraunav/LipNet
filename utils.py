@@ -47,7 +47,7 @@ class LipDataset(Dataset):
         vid_path = os.path.join(self.vid_path, spk, fname + ".mpg")
         align_path = os.path.join(self.align_path, spk, fname + ".align")
 
-        vid = self._load_video(vid_path, lip_size=(100, 50))
+        vid = self._load_video(vid_path)
         align = self._load_align(align_path)
 
         if self.phase == "train":
@@ -68,21 +68,18 @@ class LipDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def _load_video(self, p, lip_size=(64, 32)):
+    def _load_video(self, path, lip_size=(100, 50)):
         # read video frames
-        frames = vidread(p)
+        frames = vidread(path)
         # extract lips from each frame
         lipextractor = LipDetector()
         lips = []
         for f in frames:
             lip = lipextractor.findlip(f)
-            # resize each lip frame to same size
-            try: # adding exception handelling to reduce pain of life 
-                lip = cv2.resize(lip, dsize=lip_size)
-            except:
-                lip = np.zeros((*lip_size, 3))
-            lips.append(lip)
-        return lips
+            if lip is not None:
+                lip = cv2.resize(lip, lip_size)
+                lips.append(lip)
+        return np.array(lips)
 
     def _load_align(self, p):
         with open(p, "r") as file:
