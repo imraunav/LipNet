@@ -68,7 +68,7 @@ class LipDetector:
 
     def findlip(self, im, extra=10):
         # Resize to get better chance of finding a face
-        im = cv2.resize(im, dsize=(1000, 1000))
+        # im = cv2.resize(im, dsize=(1000, 1000))
         # Detect faces in the grayscale image
         grey = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
         faces = self.detector(grey)
@@ -95,4 +95,5 @@ class LipDetector:
             return lip_region
 
         else:
-            print("No face detected in the image.")
+            np.zeros((100, 100, 3)) # dummy blank frame
+            # print("No face detected in the image.")

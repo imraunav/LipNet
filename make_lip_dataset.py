@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 
 def main():
-    path = "dataset/train"
+    path = "dataset/test"
     vid_path = os.path.join(path, "videos")
     # lipextractor = LipDetector()
     detector = dlib.get_frontal_face_detector()
@@ -72,6 +72,7 @@ def main():
                     # cv2.destroyAllWindows()
                     # exit()
                 else:
+                    print(frame_path, fname.split(".")[0])
                     print("No face detected in the image.")
 
 
