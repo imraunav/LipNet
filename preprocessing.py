@@ -63,7 +63,7 @@ class LipDetector:
         # Load the face detector and shape predictor
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor(
-            "./dlip_dat/shape_predictor_68_face_landmarks.dat"
+            "./dlib_dat/shape_predictor_68_face_landmarks.dat"
         )
 
     def findlip(self, im, extra=10):
