@@ -63,7 +63,7 @@ class LipDetector:
         # Load the face detector and shape predictor
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor(
-            "./dlib/shape_predictor_68_face_landmarks.dat"
+            "./dlip_dat/shape_predictor_68_face_landmarks.dat"
         )
 
     def findlip(self, im, extra=10):
@@ -71,7 +71,7 @@ class LipDetector:
         im = cv2.resize(im, dsize=(1000, 1000))
         # Detect faces in the grayscale image
         grey = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
-        faces = self.detector(im)
+        faces = self.detector(grey)
         if faces:
             # Assuming there's only one face detected
             face = faces[0]
