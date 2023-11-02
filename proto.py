@@ -31,35 +31,43 @@
 # print(dataset.__getitem__(37)['align'])
 
 # %%
-from preprocessing import vidread, LipDetector
-import cv2
-import numpy as np
+# from preprocessing import vidread, LipDetector
+# import cv2
+# import numpy as np
 
-vidpath = './dataset/test/videos/s2/pbib7p.mpg'
+# vidpath = './dataset/test/videos/s2/pbib7p.mpg'
 # frames = vidread(vidpath)
 # lips = []
 # lipextractor = LipDetector()
-def _load_video(path, lip_size=(100, 50)):
-    # read video frames
-    frames = vidread(path)
-    # extract lips from each frame
-    lipextractor = LipDetector()
-    lips = []
-    for f in frames:
-        lip = lipextractor.findlip(f)
-        if lip is not None:
-            lip = cv2.resize(lip, lip_size)
-            lips.append(lip)
-    return np.array(lips)
+# def _load_video(path, lip_size=(100, 50)):
+#     # read video frames
+#     frames = vidread(path)
+#     # extract lips from each frame
+#     lipextractor = LipDetector()
+#     lips = []
+#     for f in frames:
+#         lip = lipextractor.findlip(f)
+#         if lip is not None:
+#             lip = cv2.resize(lip, lip_size)
+#             lips.append(lip)
+#     return np.array(lips)
 # for frame in frames:
 #     lip = lipextractor.findlip(frame)
 #     if lip is not None:
 #         lip = cv2.resize(lip, (100, 50))
 #         lips.append(lip)
 # print(len(lips))
-lips = _load_video(vidpath)
-for fno, lip in enumerate(lips):
-    cv2.imshow(f'Frame: {fno}', lip[:,:,::-1])
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+# lips = _load_video(vidpath)
+# for fno, lip in enumerate(lips):
+#     cv2.imshow(f'Frame: {fno}', lip[:,:,::-1])
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
 # %%
+from utils import LipDataset
+
+path = "./dataset"
+ds = LipDataset(path)
+# print(ds.data)
+for i in range(len(ds)):
+    d = ds.__getitem__(i)
+    print(d['vid'].shape)

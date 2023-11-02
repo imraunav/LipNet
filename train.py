@@ -31,7 +31,7 @@ def train(model, net, device):
 
     # instantiate dataset and dataloader
     dataset = LipDataset(path, vid_pad, align_pad, phase)
-    dataloader = DataLoader(dataset, batch_size, shuffle)
+    dataloader = DataLoader(dataset, batch_size, shuffle, num_workers=num_workers)
 
     optimizer = optim.Adam(model.parameters(), lr=base_learning_rate, amsgrad=True)
     ctc = nn.CTCLoss()

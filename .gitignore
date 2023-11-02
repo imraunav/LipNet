@@ -164,6 +164,7 @@ cython_debug/
 *.align
 *.zip
 *.png
+*.pkl
 
 # some mac specific stuff
 

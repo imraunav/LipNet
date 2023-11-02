@@ -5,6 +5,8 @@ from preprocessing import vidread, LipDetector, HorizontalFlip, CTCCoder
 import cv2
 import numpy as np
 import editdistance
+import pickle
+
 
 class LipDataset(Dataset):
     def __init__(self, dataset_path, vid_pad=75, align_pad=40, phase="train"):
@@ -13,6 +15,7 @@ class LipDataset(Dataset):
         """
         self.align_path = os.path.join(dataset_path, phase, "alignments")
         self.vid_path = os.path.join(dataset_path, phase, "videos")
+        self.frames_path = os.path.join(dataset_path, phase, "frames")
         self.vid_pad = vid_pad
         self.align_pad = align_pad
         self.phase = phase
@@ -20,21 +23,26 @@ class LipDataset(Dataset):
         self.ctccoder = CTCCoder()  # encode and decode alignment to ctc format
 
         self.data = []
-        for path, subdirs, files in os.walk(self.vid_path):
+        for path, subdirs, files in os.walk(self.frames_path):
             if len(subdirs) != 0:  # if not in subdir, don't do anything
                 continue
 
             spk = path.split(os.path.sep)[-1]  # only speaker name from path
             # print("Speaker: ", spk)
-            
+
             for file in files:
-                if ".mpg" not in file:  # skip non-video files
+                # if ".mpg" not in file:  # skip non-video files
+                #     continue
+                if ".pkl" not in file:  # skip non-pickle files
                     continue
-            
+
                 # print((spk, file.split(".")[0]))
-            
+
                 fname = file.split(".")[0]  # only name of the file without extention
-                if os.path.exists(os.path.join(self.align_path, spk, fname+'.align')) == True: # only add when the alignment also exists
+                if (
+                    os.path.exists(os.path.join(self.align_path, spk, fname + ".align"))
+                    == True
+                ):  # only add when the alignment also exists
                     self.data.append((spk, fname))  # speaker-name and name of the file
         return None
 
@@ -45,9 +53,12 @@ class LipDataset(Dataset):
         """
         spk, fname = self.data[idx]
         vid_path = os.path.join(self.vid_path, spk, fname + ".mpg")
+        frames_path = os.path.join(self.frames_path, spk, fname + ".pkl")
         align_path = os.path.join(self.align_path, spk, fname + ".align")
 
-        vid = self._load_video(vid_path)
+        # vid = self._load_video(vid_path)
+        vid = self._load_video_pickle(frames_path)
+        print(vid.shape)
         align = self._load_align(align_path)
 
         if self.phase == "train":
@@ -81,6 +92,11 @@ class LipDataset(Dataset):
                 lips.append(lip)
         return np.array(lips)
 
+    def _load_video_pickle(self, path):
+        with open(path, mode="rb") as f:
+            frames = pickle.load(f)
+        return np.array(frames)
+
     def _load_align(self, p):
         with open(p, "r") as file:
             lines = file.readlines()
@@ -94,18 +110,20 @@ class LipDataset(Dataset):
         return self.ctccoder.encode_char(tokens)
 
     def _padding(self, array, length):
-        array = np.array(array) # convenience
+        array = np.array(array)  # convenience
         array = [array[_] for _ in range(array.shape[0])]
         size = array[0].shape
         for i in range(length - len(array)):
             array.append(np.zeros(size))
         return np.stack(array, axis=0)
-    
-    def wer(self, predict, truth):        
-        word_pairs = [(p[0].split(' '), p[1].split(' ')) for p in zip(predict, truth)]
-        wer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in word_pairs]
+
+    def wer(self, predict, truth):
+        word_pairs = [(p[0].split(" "), p[1].split(" ")) for p in zip(predict, truth)]
+        wer = [1.0 * editdistance.eval(p[0], p[1]) / len(p[1]) for p in word_pairs]
         return wer
-        
-    def cer(self, predict, truth):        
-        cer = [1.0*editdistance.eval(p[0], p[1])/len(p[1]) for p in zip(predict, truth)]
+
+    def cer(self, predict, truth):
+        cer = [
+            1.0 * editdistance.eval(p[0], p[1]) / len(p[1]) for p in zip(predict, truth)
+        ]
         return cer
