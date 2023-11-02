@@ -38,13 +38,13 @@ def main(path):
 
             frames = vidread(vidfile_path)
             lips = []
-            # for frame in frames:
-            # lip = lipextractor.findlip(frame)
-            # if lip is not None:
-            #     lip = cv2.resize(lip, (100, 50))
-            #     lips.append(lip)
-            # with open(framefile_path, mode='wb') as f:
-            #     pickle.dump(lips, f, pickle.HIGHEST_PROTOCOL)
+            for frame in frames:
+                lip = lipextractor.findlip(frame)
+                if lip is not None:
+                    lip = cv2.resize(lip, (100, 50))
+                    lips.append(lip)
+                with open(framefile_path, mode='wb') as f:
+                    pickle.dump(lips, f, pickle.HIGHEST_PROTOCOL)
         print(f"Done for speaker {spk}.")
 
 
