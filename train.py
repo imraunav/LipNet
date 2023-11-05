@@ -50,6 +50,7 @@ def train(model, device):
     model.train()
     for epoch in range(max_epoch):
         sampler.set_epoch(epoch)
+        epoch_loss = 0
         print("Epoch : ", epoch)
         for i, (vid, align, vid_len, align_len) in enumerate(dataloader):
             vid = vid.to(device)
@@ -68,6 +69,7 @@ def train(model, device):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            epoch_loss += loss.item()
 
             y = torch.argmax(y, dim=2)
             for tru, pre in zip(align.tolist(), y.tolist()):
@@ -78,6 +80,7 @@ def train(model, device):
                 if epoch % hyperparameters.display:
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
+        print("Loss : ", epoch_loss)
         if epoch % hyperparameters.display:
             torch.save(
                 model.state_dict(),
@@ -109,7 +112,7 @@ if __name__ == "__main__":
     world_size = torch.cuda.device_count()
     mp.spawn(
         main,
-        args=(world_size),
+        args=(world_size,),
         nprocs=world_size,
     )
     main()
