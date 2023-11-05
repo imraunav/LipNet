@@ -53,6 +53,7 @@ class TrainerDDP:
         torch.cuda.empty_cache()
 
         self.gpu_id = gpu_id
+        print(f"Initializing trainer on GPU {gpu_id}")
         self.model = DDP(model, device_ids=[gpu_id])
         self.trainloader = trainloader
 
