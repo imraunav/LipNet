@@ -28,9 +28,13 @@ def dataloader_ddp(
     trainset: Dataset,
     bs: int,
 ) -> tuple[DataLoader, DataLoader, DistributedSampler]:
-    sampler_train = DistributedSampler(trainset)
+    sampler_train = DistributedSampler(trainset, shuffle=True)
     trainloader = DataLoader(
-        trainset, batch_size=bs, shuffle=False, sampler=sampler_train, num_workers=8
+        trainset,
+        batch_size=bs,
+        shuffle=False,
+        sampler=sampler_train,
+        num_workers=hyperparameters.num_workers,
     )
 
     return trainloader, sampler_train
@@ -61,7 +65,7 @@ class TrainerDDP:
         self.ctcdecoder = TokenConv()
 
     def _save_checkpoint(self, epoch: int, train_wer):
-        ckp = self.model.state_dict()
+        ckp = self.model.module.state_dict()
         model_path = f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt.pt"
         torch.save(ckp, model_path)
 
@@ -92,19 +96,23 @@ class TrainerDDP:
             for tru, pre in zip(align.tolist(), y.tolist()):
                 true_txt = self.ctcdecoder.ctc_decode(tru)
                 pred_txt = self.ctcdecoder.ctc_decode(pre)
-            
+
                 train_wer.extend(wer(pred_txt, true_txt))
                 if epoch % hyperparameters.display:
                     print(f"Epoch [GPU:{self.gpu_id}]: ")
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
-            print(f"Epoch [GPU:{self.gpu_id}]: ", epoch, "Loss : ", epoch_loss/len(self.trainloader))
+            print(
+                f"Epoch [GPU:{self.gpu_id}]: ",
+                epoch,
+                "Loss : ",
+                epoch_loss / len(self.trainloader),
+            )
             # only save once on master gpu
             if self.gpu_id == 0 and epoch % hyperparameters.save_every == 0:
                 self._save_checkpoint(epoch)
         # save last epoch
         self._save_checkpoint(max_epochs - 1)
-
 
 
 def main(rank, world_size):
@@ -124,8 +132,10 @@ def main(rank, world_size):
     trainer.train(hyperparameters.max_epoch)
     destroy_process_group()  # clean up
 
+
 if __name__ == "__main__":
     world_size = torch.cuda.device_count()
+    print(f"Found {world_size} GPU.")
     mp.spawn(
         main,
         args=(world_size,),
