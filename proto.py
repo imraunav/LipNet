@@ -63,11 +63,26 @@
 #     cv2.waitKey(0)
 #     cv2.destroyAllWindows()
 # %%
-from utils import LipDataset
+# from utils import LipDataset
 
-path = "./dataset"
-ds = LipDataset(path)
-# print(ds.data)
-for i in range(len(ds)):
-    d = ds.__getitem__(i)
-    print(d['vid'].shape)
+# path = "./dataset"
+# ds = LipDataset(path)
+# # print(ds.data)
+# for i in range(len(ds)):
+#     d = ds.__getitem__(i)
+#     print(d['vid'].shape)
+
+# %%
+import pickle
+import cv2
+
+PATH = "./dataset/train/frames/s3/bbaf1s.pkl"
+with open(PATH, mode='rb') as f:
+    frames = pickle.load(f)
+
+for i, frame in enumerate(frames):
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    cv2.imshow(f"Frame {i+1}", frame)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+# cv2.destroyAllWindows()

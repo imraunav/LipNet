@@ -1,43 +1,49 @@
 import dlib
 import cv2
 import numpy as np
+import pickle
+import editdistance
 
 
-class CTCCoder:
-    def __init__(self, start=1):
-        self.vocab = list(" abcdefghijklmnopqrstuvwxyz")
-        self.char2int = {c: i for i, c in enumerate(self.vocab, start=start)}
-        self.int2char = {i: c for c, i in self.char2int.items()}
+class TokenConv:
+    """
+    0 key is the invalid key for the network, hence staring everything from 1
+    """
 
-    def encode_char(self, charecter: list):
-        return [self.char2int[str(x)] for x in charecter]  # just a safeguard, added str
+    def __init__(self):
+        oov_char = ""  # out of vocab char
+        self.vocab = " abcdefghijklmnopqrstuvwxyz"
+        self.char2int = {c: i for i, c in enumerate(self.vocab, start=1)}
+        self.int2char = {i: c for i, c in enumerate(self.vocab, start=1)}
 
-    def decode_char(self, integer: list):
-        return [self.int2char[int(x)] for x in integer]  # just a safeguard, added int
+        self.char2int[oov_char] = 0
+        self.int2char[0] = oov_char
 
-    def ctc_arr2txt(self, arr, start=1):
-        # self.int2char = {i+start : x for i, x in enumerate(' abcdefghijklmnopqrstuvwxyz')}
-        prev = -1
-        txt = []
-        for n in arr:
-            if prev != n and n >= start:
-                if len(txt) > 0 and txt[-1] == " " and self.int2char[int(n)] == " ":
-                    pass
-                else:
-                    txt.append(self.int2char[int(n)])  # just a safeguard, added int
-            prev = n
-        return "".join(txt).strip()
+    def encode(self, charecters: list) -> list[str]:
+        return [self.char2int.get(c, "") for c in charecters]
+
+    # def decode(self, ints: list) -> list:
+    #     return [self.int2char.get(i) for i in ints]  # __default= ?
+
+    def ctc_decode(self, arr: list) -> str:
+        decoded_sequence = []
+        previous_label = None
+        for x in arr:
+            if x != previous_label:  # oov_char taken care of
+                decoded_sequence.append(self.int2char.get(x))
+            previous_label = x
+        return "".join(decoded_sequence)
 
 
-def HorizontalFlip(frames, p=0.5):
+def HorizontalFlip(frames, p=0.5) -> list[np.array]:
     # frames = np.array(batch_img)  # convenience
-    # (T, H, W, C)
+    # (T, W, H, C)
     if np.random.random() > p:
         frames = [frame[:, ::-1, ...] for frame in frames]
     return frames
 
 
-def vidread(filepath):
+def vidread(filepath) -> list[np.array]:
     vid_cap = cv2.VideoCapture(filepath)
     frames = []
     while vid_cap.isOpened() == True:
@@ -98,3 +104,41 @@ class LipDetector:
             # np.zeros((100, 100, 3)) # dummy blank frame
             return None
             # print("No face detected in the image.")
+
+
+def get_frames_pkl(path) -> list[np.array]:
+    with open(path, mode="rb") as f:
+        frames = pickle.load(f)
+    return frames
+
+
+def load_align(p) -> list[str]:
+    with open(p, "r") as file:
+        lines = file.readlines()
+    tokens = []
+    for line in lines:
+        line = line.split()
+        if line[2] != "sil":  # ignore if silence
+            tokens.extend(list(line[2]))  # only add the words as chars
+            tokens.append(" ")
+    return tokens[:-1]  # remove last space
+
+
+def padding(array, length):
+    array = np.array(array)  # convenience
+    array = [array[_] for _ in range(array.shape[0])]
+    size = array[0].shape
+    for i in range(length - len(array)):
+        array.append(np.zeros(size))
+    return np.stack(array, axis=0)
+
+
+def wer(predict, truth) -> list:
+    word_pairs = [(p[0].split(" "), p[1].split(" ")) for p in zip(predict, truth)]
+    wer = [1.0 * editdistance.eval(p[0], p[1]) / len(p[1]) for p in word_pairs]
+    return wer
+
+
+def cer(predict, truth):
+    cer = [1.0 * editdistance.eval(p[0], p[1]) / len(p[1]) for p in zip(predict, truth)]
+    return cer

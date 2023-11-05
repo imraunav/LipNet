@@ -1,26 +1,20 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import os
-from preprocessing import vidread, LipDetector, HorizontalFlip, CTCCoder
-import cv2
+from preprocessing import HorizontalFlip, get_frames_pkl, load_align, TokenConv, padding
 import numpy as np
-import editdistance
-import pickle
 
 
 class LipDataset(Dataset):
-    def __init__(self, dataset_path, vid_pad=75, align_pad=40, phase="train"):
-        """
-        Dataset path to entire dataset, find location of all the files within that directory
-        """
+    def __init__(self, dataset_path, vid_pad=75, align_pad=40, phase="train") -> None:
+        super().__init__()
         self.align_path = os.path.join(dataset_path, phase, "alignments")
-        self.vid_path = os.path.join(dataset_path, phase, "videos")
+        # self.vid_path = os.path.join(dataset_path, phase, "videos")
         self.frames_path = os.path.join(dataset_path, phase, "frames")
         self.vid_pad = vid_pad
         self.align_pad = align_pad
         self.phase = phase
-
-        self.ctccoder = CTCCoder()  # encode and decode alignment to ctc format
+        self.ctccoder = TokenConv()
 
         self.data = []
         for path, subdirs, files in os.walk(self.frames_path):
@@ -35,95 +29,38 @@ class LipDataset(Dataset):
                 #     continue
                 if ".pkl" not in file:  # skip non-pickle files
                     continue
-
                 # print((spk, file.split(".")[0]))
 
                 fname = file.split(".")[0]  # only name of the file without extention
-                if (
-                    os.path.exists(os.path.join(self.align_path, spk, fname + ".align"))
-                    == True
-                ):  # only add when the alignment also exists
+                align_dir = os.path.join(self.align_path, spk, fname + ".align")
+                if os.path.exists(align_dir):  # only add when the alignment also exists
                     self.data.append((spk, fname))  # speaker-name and name of the file
+        print("Dataset loaded successfully!")
         return None
 
-    def __getitem__(self, idx):
-        """
-        Return a dictionary with key values:
-        "vid", "align", "align_len", "vid_len"
-        """
-        spk, fname = self.data[idx]
-        vid_path = os.path.join(self.vid_path, spk, fname + ".mpg")
-        frames_path = os.path.join(self.frames_path, spk, fname + ".pkl")
-        align_path = os.path.join(self.align_path, spk, fname + ".align")
+    def __len__(self):
+        return len(self.data)
 
-        # vid = self._load_video(vid_path)
-        vid = self._load_video_pickle(frames_path)
-        print(vid.shape)
-        align = self._load_align(align_path)
+    def __getitem__(self, index):
+        speaker, fname = self.data[index]
+        frames_path = os.path.join(self.frames_path, speaker, fname + ".pkl")
+        align_path = os.path.join(self.align_path, speaker, fname + ".align")
+
+        vid = get_frames_pkl(frames_path)
+        align = load_align(align_path)
+        align = self.ctccoder.encode(align)
 
         if self.phase == "train":
             vid = HorizontalFlip(vid)
 
         vid_len = len(vid)
         align_len = len(align)
-        vid = self._padding(vid, self.vid_pad)
-        align = self._padding(align, self.align_pad)
+        vid = padding(vid, self.vid_pad)
+        align = padding(align, self.align_pad)
 
-        return {
-            "vid": torch.Tensor(vid),
-            "align": torch.Tensor(align),
-            "align_len": align_len,
-            "vid_len": vid_len,
-        }
-
-    def __len__(self):
-        return len(self.data)
-
-    def _load_video(self, path, lip_size=(100, 50)):
-        # read video frames
-        frames = vidread(path)
-        # extract lips from each frame
-        lipextractor = LipDetector()
-        lips = []
-        for f in frames:
-            lip = lipextractor.findlip(f)
-            if lip is not None:
-                lip = cv2.resize(lip, lip_size)
-                lips.append(lip)
-        return np.array(lips)
-
-    def _load_video_pickle(self, path):
-        with open(path, mode="rb") as f:
-            frames = pickle.load(f)
-        return np.array(frames)
-
-    def _load_align(self, p):
-        with open(p, "r") as file:
-            lines = file.readlines()
-        tokens = []
-        for line in lines:
-            line = line.split()
-            if line[2] != "sil":  # ignore if silence
-                tokens.append(" ")
-                tokens.extend(list(line[2]))  # only add the words as chars
-
-        return self.ctccoder.encode_char(tokens)
-
-    def _padding(self, array, length):
-        array = np.array(array)  # convenience
-        array = [array[_] for _ in range(array.shape[0])]
-        size = array[0].shape
-        for i in range(length - len(array)):
-            array.append(np.zeros(size))
-        return np.stack(array, axis=0)
-
-    def wer(self, predict, truth):
-        word_pairs = [(p[0].split(" "), p[1].split(" ")) for p in zip(predict, truth)]
-        wer = [1.0 * editdistance.eval(p[0], p[1]) / len(p[1]) for p in word_pairs]
-        return wer
-
-    def cer(self, predict, truth):
-        cer = [
-            1.0 * editdistance.eval(p[0], p[1]) / len(p[1]) for p in zip(predict, truth)
-        ]
-        return cer
+        return (
+            torch.Tensor(vid),
+            torch.Tensor(align),
+            vid_len,
+            align_len,
+        )
