@@ -65,7 +65,7 @@ class TrainerDDP:
         self.crit = nn.CTCLoss()
         self.ctcdecoder = TokenConv()
 
-    def _save_checkpoint(self, epoch: int, train_wer):
+    def _save_checkpoint(self, epoch: int, train_wer: list):
         ckp = self.model.module.state_dict()
         model_path = f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt.pt"
         torch.save(ckp, model_path)
@@ -111,9 +111,9 @@ class TrainerDDP:
             )
             # only save once on master gpu
             if self.gpu_id == 0 and epoch % hyperparameters.save_every == 0:
-                self._save_checkpoint(epoch)
+                self._save_checkpoint(epoch, train_wer)
         # save last epoch
-        self._save_checkpoint(max_epochs - 1)
+        self._save_checkpoint(max_epochs - 1, train_wer)
 
 
 def main(rank, world_size):
