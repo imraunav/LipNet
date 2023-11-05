@@ -18,4 +18,4 @@ source /home/apps/DL/DL-CondaPy3.7/bin/activate torch
 cd $SLURM_SUBMIT_DIR
 
 # CUDA_VISIBLE_DEVICES=0,1 python train.py
-torchrun train.py
+torchrun --nproc_per_node=2 --nnodes=1 train.py
