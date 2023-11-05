@@ -35,9 +35,10 @@ def train(model, device):
 
     # instantiate dataset and dataloader
     dataset = LipDataset(path, vid_pad, align_pad, phase)
-    sampler = DistributedSampler(dataset, num_replicas=hyperparameters.num_gpus, rank=1)
+    # sampler = DistributedSampler(dataset, num_replicas=hyperparameters.num_gpus, rank=1)
     dataloader = DataLoader(
-        dataset, batch_size, shuffle, num_workers=num_workers, sampler=sampler
+        dataset, batch_size, shuffle, num_workers=num_workers
+        # , sampler=sampler
     )
 
     optimizer = optim.Adam(model.parameters(), lr=base_learning_rate, amsgrad=True)
@@ -85,20 +86,21 @@ def train(model, device):
 def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = LipNet()  # instantiate model
-    model = DistributedDataParallel(model).to(device)
+    # model = DistributedDataParallel(model).to(device)
+    model = nn.DataParallel(model).to(device)
     train(model, device)
 
 
 if __name__ == "__main__":
     # writer = SummaryWriter()
-    dist.init_process_group(
-        backend="nccl",
-        init_method="env://",
-        world_size=hyperparameters.num_gpus,
-        rank=0,
-    )
+    # dist.init_process_group(
+    #     backend="nccl",
+    #     init_method="env://",
+    #     world_size=hyperparameters.num_gpus,
+    #     rank=0,
+    # )
     main()
-    dist.destroy_process_group()
+    # dist.destroy_process_group()
 
 # def test(model, net):
 #     path = hyperparameters.dataset_path
