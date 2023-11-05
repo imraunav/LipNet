@@ -54,13 +54,13 @@ class TrainerDDP:
 
         self.gpu_id = gpu_id
         print(f"Initializing trainer on GPU {gpu_id}")
-        self.model = DDP(model, device_ids=[gpu_id])
+        self.model = DDP(model, device_ids=[gpu_id], output_device=gpu_id)
         self.trainloader = trainloader
 
         self.sampler_train = sampler_train
 
         self.optimizer = optim.Adam(
-            model.parameters(), lr=hyperparameters.base_learning_rate, amsgrad=True
+            self.model.parameters(), lr=hyperparameters.base_learning_rate, amsgrad=True
         )
         self.crit = nn.CTCLoss()
         self.ctcdecoder = TokenConv()
@@ -123,7 +123,7 @@ def main(rank, world_size):
     train_dataloader, train_sampler = dataloader_ddp(
         train_dataset, hyperparameters.batch_size
     )
-    model = LipNet()
+    model = LipNet().cuda(rank)
     trainer = TrainerDDP(
         gpu_id=rank,
         model=model,
