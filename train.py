@@ -35,10 +35,7 @@ def train(model, device):
 
     # instantiate dataset and dataloader
     dataset = LipDataset(path, vid_pad, align_pad, phase)
-    sampler = DistributedSampler(
-        dataset,
-        num_replicas=hyperparameters.num_gpus,
-    )
+    sampler = DistributedSampler(dataset, num_replicas=hyperparameters.num_gpus, rank=1)
     dataloader = DataLoader(
         dataset, batch_size, shuffle, num_workers=num_workers, sampler=sampler
     )
@@ -94,7 +91,12 @@ def main():
 
 if __name__ == "__main__":
     # writer = SummaryWriter()
-    dist.init_process_group(backend="nccl", init_method="env://")
+    dist.init_process_group(
+        backend="nccl",
+        init_method="env://",
+        world_size=hyperparameters.num_gpus,
+        rank=0,
+    )
     main()
     dist.destroy_process_group()
 
