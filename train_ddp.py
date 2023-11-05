@@ -12,6 +12,8 @@ import numpy as np
 
 import hyperparameters
 from preprocessing import TokenConv, wer
+from utils import LipDataset
+from model import LipNet
 
 
 # Each process control a single gpu
@@ -24,22 +26,14 @@ def ddp_setup(rank: int, world_size: int):
 
 def dataloader_ddp(
     trainset: Dataset,
-    testset: Dataset,
     bs: int,
 ) -> tuple[DataLoader, DataLoader, DistributedSampler]:
     sampler_train = DistributedSampler(trainset)
     trainloader = DataLoader(
         trainset, batch_size=bs, shuffle=False, sampler=sampler_train, num_workers=8
     )
-    testloader = DataLoader(
-        testset,
-        batch_size=bs,
-        shuffle=False,
-        sampler=DistributedSampler(testset, shuffle=False),
-        num_workers=8,
-    )
 
-    return trainloader, testloader, sampler_train
+    return trainloader, sampler_train
 
 
 class TrainerDDP:
@@ -101,6 +95,7 @@ class TrainerDDP:
             
                 train_wer.extend(wer(pred_txt, true_txt))
                 if epoch % hyperparameters.display:
+                    print(f"Epoch [GPU:{self.gpu_id}]: ")
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
             print(f"Epoch [GPU:{self.gpu_id}]: ", epoch, "Loss : ", epoch_loss/len(self.trainloader))
@@ -111,6 +106,29 @@ class TrainerDDP:
         self._save_checkpoint(max_epochs - 1)
 
 
-class Trainer:
-    def __init__(self):
-        raise NotImplementedError
+
+def main(rank, world_size):
+    ddp_setup(rank, world_size)  # initialize ddp
+
+    train_dataset = LipDataset(hyperparameters.dataset_path)
+    train_dataloader, test_dataloader, train_sampler = dataloader_ddp(
+        train_dataset, hyperparameters.batch_size
+    )
+    model = LipNet()
+    trainer = TrainerDDP(
+        gpu_id=rank,
+        model=model,
+        trainloader=train_dataloader,
+        testloader=test_dataloader,
+        sampler_train=train_sampler,
+    )
+    trainer.train(hyperparameters.max_epoch)
+    destroy_process_group()  # clean up
+
+if __name__ == "__main__":
+    world_size = torch.cuda.device_count()
+    mp.spawn(
+        main,
+        args=(world_size,),
+        nprocs=world_size,
+    )  # nprocs - total number of processes - # gpus

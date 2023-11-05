@@ -4,8 +4,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch import optim
-
-# from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 import time
 import numpy as np
 
@@ -13,10 +12,8 @@ from model import LipNet
 from utils import LipDataset
 from preprocessing import wer, cer, TokenConv
 import hyperparameters
-import torch.multiprocessing as mp
-from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.nn.parallel import DistributedDataParallel, DataParallel
 from torch.utils.data.distributed import DistributedSampler
-import torch.distributed as dist
 
 
 def train(model, device):
@@ -29,28 +26,24 @@ def train(model, device):
     num_workers = hyperparameters.num_workers
     base_learning_rate = hyperparameters.base_learning_rate
     max_epoch = hyperparameters.max_epoch
-    # if phase == "train":
-    #     shuffle = True
-    # else:
-    #     shuffle = False
+    if phase == "train":
+        shuffle = True
+    else:
+        shuffle = False
 
     # instantiate dataset and dataloader
     dataset = LipDataset(path, vid_pad, align_pad, phase)
-    sampler = DistributedSampler(dataset)
     dataloader = DataLoader(
-        dataset, batch_size, shuffle=False, sampler=sampler, num_workers=num_workers
+        dataset, batch_size, shuffle, num_workers=num_workers
     )
 
     optimizer = optim.Adam(model.parameters(), lr=base_learning_rate, amsgrad=True)
     ctc = nn.CTCLoss()
     ctcdecoder = TokenConv()
-    # tic = time.time()
+    tic = time.time()
 
     train_wer = []
-    model.train()
     for epoch in range(max_epoch):
-        sampler.set_epoch(epoch)
-        epoch_loss = 0
         print("Epoch : ", epoch)
         for i, (vid, align, vid_len, align_len) in enumerate(dataloader):
             vid = vid.to(device)
@@ -65,59 +58,35 @@ def train(model, device):
                 vid_len.view(-1),
                 align_len.view(-1),
             )
-            # print(loss)
+            print(loss)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            epoch_loss += loss.item()
 
             y = torch.argmax(y, dim=2)
             for tru, pre in zip(align.tolist(), y.tolist()):
                 true_txt = ctcdecoder.ctc_decode(tru)
                 pred_txt = ctcdecoder.ctc_decode(pre)
-
+            
                 train_wer.extend(wer(pred_txt, true_txt))
                 if epoch % hyperparameters.display:
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
-        print("Loss : ", epoch_loss)
         if epoch % hyperparameters.display:
-            torch.save(
-                model.state_dict(),
-                f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt",
-            )
+            torch.save(model.state_dict(), f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt")
 
 
-def main(rank:int, world_size: int):
-    ddp_setup(rank, world_size)
-    # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    torch.cuda.set_device(rank)
-    torch.cuda.empty_cache()
+def main():
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = LipNet()  # instantiate model
-    # model = DistributedDataParallel(model).to(device)
-    # model = nn.DataParallel(model).to(device)
-    model = DDP(model, device_ids=[rank])
-    train(model)
-    dist.destroy_process_group()
-
-def ddp_setup(rank: int, world_size: int):
-    os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = "54321"  # select any idle port on your machine
-
-    dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
+    model = DataParallel(model).to(device)
+    train(model, device)
 
 
 if __name__ == "__main__":
-    # writer = SummaryWriter()
-    world_size = torch.cuda.device_count()
-    mp.spawn(
-        main,
-        args=(world_size,),
-        nprocs=world_size,
-    )
+    writer = SummaryWriter()
     main()
-    
-
+ 
 # def test(model, net):
 #     path = hyperparameters.dataset_path
 #     vid_pad = hyperparameters.vid_pad
@@ -184,3 +153,4 @@ if __name__ == "__main__":
 #                 print("".join(101 * "-"))
 
 #         return (np.array(loss_list).mean(), np.array(wer).mean(), np.array(cer).mean())
+
