@@ -111,7 +111,7 @@ def main(rank, world_size):
     ddp_setup(rank, world_size)  # initialize ddp
 
     train_dataset = LipDataset(hyperparameters.dataset_path)
-    train_dataloader, test_dataloader, train_sampler = dataloader_ddp(
+    train_dataloader, train_sampler = dataloader_ddp(
         train_dataset, hyperparameters.batch_size
     )
     model = LipNet()
@@ -119,7 +119,6 @@ def main(rank, world_size):
         gpu_id=rank,
         model=model,
         trainloader=train_dataloader,
-        testloader=test_dataloader,
         sampler_train=train_sampler,
     )
     trainer.train(hyperparameters.max_epoch)
