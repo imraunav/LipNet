@@ -13,7 +13,8 @@ from model import LipNet
 from utils import LipDataset
 from preprocessing import wer, cer, TokenConv
 import hyperparameters
-from torch.nn.parallel import DistributedDataParallel
+import torch.multiprocessing as mp
+from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler
 import torch.distributed as dist
 
@@ -28,26 +29,27 @@ def train(model, device):
     num_workers = hyperparameters.num_workers
     base_learning_rate = hyperparameters.base_learning_rate
     max_epoch = hyperparameters.max_epoch
-    if phase == "train":
-        shuffle = True
-    else:
-        shuffle = False
+    # if phase == "train":
+    #     shuffle = True
+    # else:
+    #     shuffle = False
 
     # instantiate dataset and dataloader
     dataset = LipDataset(path, vid_pad, align_pad, phase)
-    # sampler = DistributedSampler(dataset, num_replicas=hyperparameters.num_gpus, rank=1)
+    sampler = DistributedSampler(dataset)
     dataloader = DataLoader(
-        dataset, batch_size, shuffle, num_workers=num_workers
-        # , sampler=sampler
+        dataset, batch_size, shuffle=False, sampler=sampler, num_workers=num_workers
     )
 
     optimizer = optim.Adam(model.parameters(), lr=base_learning_rate, amsgrad=True)
     ctc = nn.CTCLoss()
     ctcdecoder = TokenConv()
-    tic = time.time()
+    # tic = time.time()
 
     train_wer = []
+    model.train()
     for epoch in range(max_epoch):
+        sampler.set_epoch(epoch)
         print("Epoch : ", epoch)
         for i, (vid, align, vid_len, align_len) in enumerate(dataloader):
             vid = vid.to(device)
@@ -62,7 +64,7 @@ def train(model, device):
                 vid_len.view(-1),
                 align_len.view(-1),
             )
-            print(loss)
+            # print(loss)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -83,24 +85,35 @@ def train(model, device):
             )
 
 
-def main():
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+def main(rank:int, world_size: int):
+    ddp_setup(rank, world_size)
+    # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    torch.cuda.set_device(rank)
+    torch.cuda.empty_cache()
     model = LipNet()  # instantiate model
     # model = DistributedDataParallel(model).to(device)
-    model = nn.DataParallel(model).to(device)
-    train(model, device)
+    # model = nn.DataParallel(model).to(device)
+    model = DDP(model, device_ids=[rank])
+    train(model)
+    dist.destroy_process_group()
+
+def ddp_setup(rank: int, world_size: int):
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = "54321"  # select any idle port on your machine
+
+    dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
 
 
 if __name__ == "__main__":
     # writer = SummaryWriter()
-    # dist.init_process_group(
-    #     backend="nccl",
-    #     init_method="env://",
-    #     world_size=hyperparameters.num_gpus,
-    #     rank=0,
-    # )
+    world_size = torch.cuda.device_count()
+    mp.spawn(
+        main,
+        args=(world_size),
+        nprocs=world_size,
+    )
     main()
-    # dist.destroy_process_group()
+    
 
 # def test(model, net):
 #     path = hyperparameters.dataset_path
