@@ -4,6 +4,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch import optim
+
 # from torch.utils.tensorboard import SummaryWriter
 import time
 import numpy as np
@@ -14,6 +15,7 @@ from preprocessing import wer, cer, TokenConv
 import hyperparameters
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.distributed import DistributedSampler
+import torch.distributed as dist
 
 
 def train(model, device):
@@ -33,7 +35,10 @@ def train(model, device):
 
     # instantiate dataset and dataloader
     dataset = LipDataset(path, vid_pad, align_pad, phase)
-    sampler = DistributedSampler(dataset)
+    sampler = DistributedSampler(
+        dataset,
+        num_replicas=hyperparameters.num_gpus,
+    )
     dataloader = DataLoader(
         dataset, batch_size, shuffle, num_workers=num_workers, sampler=sampler
     )
@@ -68,13 +73,16 @@ def train(model, device):
             for tru, pre in zip(align.tolist(), y.tolist()):
                 true_txt = ctcdecoder.ctc_decode(tru)
                 pred_txt = ctcdecoder.ctc_decode(pre)
-            
+
                 train_wer.extend(wer(pred_txt, true_txt))
                 if epoch % hyperparameters.display:
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
         if epoch % hyperparameters.display:
-            torch.save(model.state_dict(), f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt")
+            torch.save(
+                model.state_dict(),
+                f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt",
+            )
 
 
 def main():
@@ -86,8 +94,10 @@ def main():
 
 if __name__ == "__main__":
     # writer = SummaryWriter()
+    dist.init_process_group(backend="nccl", init_method="env://")
     main()
- 
+    dist.destroy_process_group()
+
 # def test(model, net):
 #     path = hyperparameters.dataset_path
 #     vid_pad = hyperparameters.vid_pad
@@ -154,4 +164,3 @@ if __name__ == "__main__":
 #                 print("".join(101 * "-"))
 
 #         return (np.array(loss_list).mean(), np.array(wer).mean(), np.array(cer).mean())
-
