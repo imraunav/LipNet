@@ -64,7 +64,7 @@ class LipNet(nn.Module):
         x = self.drp2(x)
         x = self.pred(x)
         
-        return x
+        return F.log_softmax(x, dim=-1)
 # class LipNet(nn.Module):
 #     def __init__(self):
 #         super().__init__()
