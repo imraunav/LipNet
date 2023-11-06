@@ -85,18 +85,17 @@ class TrainerDDP:
                 y = self.model(vid)
                 loss = self.crit(
                     y.transpose(0, 1),
-                    torch.nn.functional.one_hot(align).astype(torch.float32),
+                    align,
                     vid_len.view(-1),
                     align_len.view(-1),
                 )
                 y = torch.argmax(y, dim=2)
                 if hyperparameters.debug:
                     print("Model out : ", y)
+                    print("Loss : ", loss.item())
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
-                if hyperparameters.debug:
-                    print("Loss : ", loss.item())
                 epoch_loss += loss.item()
             for tru, pre in zip(align.tolist(), y.tolist()):
                 true_txt = self.ctcdecoder.ctc_decode(tru)
