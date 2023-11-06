@@ -66,6 +66,7 @@ class LipNet(nn.Module):
                 init.constant_(m.bias_ih_l0_reverse[i : i + 256], 0)
 
     def forward(self, x):
+        x = x.permute(0, 4, 1, 2, 3).contiguous()
         x = self.conv(x)  # B C T H W
         x = x.permute(2, 0, 1, 3, 4).contiguous()  # T B C H W
         x = x.view(x.size(0), x.size(1), -1)
