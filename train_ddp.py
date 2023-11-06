@@ -100,7 +100,7 @@ class TrainerDDP:
 
                 train_wer.extend(wer(pred_txt, true_txt))
                 if epoch % hyperparameters.display:
-                    print(f"Epoch [GPU:{self.gpu_id}]: ")
+                    print(f"Epoch [GPU:{self.gpu_id}]: ", epoch)
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
             print(
