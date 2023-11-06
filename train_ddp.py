@@ -92,6 +92,8 @@ class TrainerDDP:
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
+                if epoch < 1:
+                    print("Loss : ", loss.item())
                 epoch_loss += loss.item()
                 y = torch.argmax(y, dim=2)
             for tru, pre in zip(align.tolist(), y.tolist()):
