@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 import os
 from preprocessing import HorizontalFlip, get_frames_pkl, load_align, TokenConv, padding
 import numpy as np
-
+import cv2
 
 class LipDataset(Dataset):
     def __init__(self, dataset_path, vid_pad=75, align_pad=40, phase="train") -> None:
@@ -54,6 +54,8 @@ class LipDataset(Dataset):
             vid = HorizontalFlip(vid)
 
         vid_len = len(vid)
+        for i, v in enumerate(vid):
+            vid[i] = cv2.resize(v, (128, 64))
         align_len = len(align)
         vid = padding(vid, self.vid_pad)
         align = padding(align, self.align_pad)

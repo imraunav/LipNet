@@ -18,4 +18,4 @@ num_gpus = 2
 save_every = 100
 debug = True
 
-weights = "pretrain/LipNet_unseen_loss_0.44562849402427673_wer_0.1332580699113564_cer_0.06796452465503355.pt"
+weights = "weights/LipNet_unseen_loss_0.44562849402427673_wer_0.1332580699113564_cer_0.06796452465503355.pt"
