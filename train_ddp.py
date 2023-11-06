@@ -83,15 +83,15 @@ class TrainerDDP:
                 vid_len = vid_len.to(self.gpu_id)
                 align_len = align_len.to(self.gpu_id)
                 y = self.model(vid)
-                y = torch.argmax(y, dim=2)
-                if hyperparameters.debug:
-                    print("Model out : ", y)
                 loss = self.crit(
                     y.transpose(0, 1),
-                    align,
+                    torch.nn.functional.one_hot(align).astype(torch.float32),
                     vid_len.view(-1),
                     align_len.view(-1),
                 )
+                y = torch.argmax(y, dim=2)
+                if hyperparameters.debug:
+                    print("Model out : ", y)
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
