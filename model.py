@@ -7,37 +7,36 @@ import math
 
 
 class LipNet(nn.Module):
-    def __init__(self, opt, vocab_size):
+    def __init__(self, vocab_size=27):
         super(LipNet, self).__init__()
-        self.opt = opt
         self.conv = nn.Sequential(
             nn.Conv3d(
                 3, 32, kernel_size=(3, 5, 5), stride=(1, 2, 2), padding=(1, 2, 2)
             ),
             nn.ReLU(True),
             nn.MaxPool3d(kernel_size=(1, 2, 2), stride=(1, 2, 2)),
-            nn.Dropout3d(opt.dropout),
+            nn.Dropout3d(),
             nn.Conv3d(
                 32, 64, kernel_size=(3, 5, 5), stride=(1, 1, 1), padding=(1, 2, 2)
             ),
             nn.ReLU(True),
             nn.MaxPool3d(kernel_size=(1, 2, 2), stride=(1, 2, 2)),
-            nn.Dropout3d(opt.dropout),
+            nn.Dropout3d(),
             nn.Conv3d(
                 64, 96, kernel_size=(3, 3, 3), stride=(1, 1, 1), padding=(1, 1, 1)
             ),
             nn.ReLU(True),
             nn.MaxPool3d(kernel_size=(1, 2, 2), stride=(1, 2, 2)),
-            nn.Dropout3d(opt.dropout),
+            nn.Dropout3d(),
         )
         # T B C*H*W
-        self.gru1 = nn.GRU(96 * 3 * 6, opt.rnn_size, 1, bidirectional=True)
-        self.drp1 = nn.Dropout(opt.dropout)
+        self.gru1 = nn.GRU(96 * 3 * 6, 256, 1, bidirectional=True)
+        self.drp1 = nn.Dropout()
         # T B F
-        self.gru2 = nn.GRU(opt.rnn_size * 2, opt.rnn_size, 1, bidirectional=True)
-        self.drp2 = nn.Dropout(opt.dropout)
+        self.gru2 = nn.GRU(256 * 2, 256, 1, bidirectional=True)
+        self.drp2 = nn.Dropout()
         # T B V
-        self.pred = nn.Linear(opt.rnn_size * 2, vocab_size + 1)
+        self.pred = nn.Linear(256 * 2, vocab_size + 1)
 
         # initialisations
         for m in self.conv.modules():
@@ -49,22 +48,22 @@ class LipNet(nn.Module):
         init.constant_(self.pred.bias, 0)
 
         for m in (self.gru1, self.gru2):
-            stdv = math.sqrt(2 / (96 * 3 * 6 + opt.rnn_size))
-            for i in range(0, opt.rnn_size * 3, opt.rnn_size):
+            stdv = math.sqrt(2 / (96 * 3 * 6 + 256))
+            for i in range(0, 256 * 3, 256):
                 init.uniform_(
-                    m.weight_ih_l0[i : i + opt.rnn_size],
+                    m.weight_ih_l0[i : i + 256],
                     -math.sqrt(3) * stdv,
                     math.sqrt(3) * stdv,
                 )
-                init.orthogonal_(m.weight_hh_l0[i : i + opt.rnn_size])
-                init.constant_(m.bias_ih_l0[i : i + opt.rnn_size], 0)
+                init.orthogonal_(m.weight_hh_l0[i : i + 256])
+                init.constant_(m.bias_ih_l0[i : i + 256], 0)
                 init.uniform_(
-                    m.weight_ih_l0_reverse[i : i + opt.rnn_size],
+                    m.weight_ih_l0_reverse[i : i + 256],
                     -math.sqrt(3) * stdv,
                     math.sqrt(3) * stdv,
                 )
-                init.orthogonal_(m.weight_hh_l0_reverse[i : i + opt.rnn_size])
-                init.constant_(m.bias_ih_l0_reverse[i : i + opt.rnn_size], 0)
+                init.orthogonal_(m.weight_hh_l0_reverse[i : i + 256])
+                init.constant_(m.bias_ih_l0_reverse[i : i + 256], 0)
 
     def forward(self, x):
         x = self.conv(x)  # B C T H W
