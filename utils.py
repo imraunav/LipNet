@@ -59,7 +59,7 @@ class LipDataset(Dataset):
         align = padding(align, self.align_pad)
 
         return (
-            torch.Tensor(vid),
+            torch.Tensor(vid)/255.0, # normalization
             torch.Tensor(align),
             vid_len,
             align_len,

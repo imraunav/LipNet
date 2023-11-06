@@ -60,7 +60,7 @@ class TrainerDDP:
         self.sampler_train = sampler_train
 
         self.optimizer = optim.Adam(
-            self.model.parameters(), lr=hyperparameters.base_learning_rate, amsgrad=True
+            self.model.parameters(), lr=hyperparameters.base_learning_rate
         )
         self.crit = nn.CTCLoss()
         self.ctcdecoder = TokenConv()
