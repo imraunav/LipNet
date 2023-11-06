@@ -74,6 +74,7 @@ class LipNet(nn.Module):
         x = self.drp1(x)
         x, _ = self.gru2(x)
         x = self.drp2(x)
+        x = x.permute(1, 0, 2).contiguous() # (T, B, 27+1) -> (B, T, 27+1)
         x = self.pred(x)
 
         return F.log_softmax(x, dim=-1)
