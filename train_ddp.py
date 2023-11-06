@@ -93,6 +93,12 @@ class TrainerDDP:
                 if hyperparameters.debug:
                     print("Model out : ", y)
                     print("Loss : ", loss.item())
+                    if torch.isnan(y):
+                        print("Pred labels have nan")
+                        exit()
+                    if torch.isnan(loss):
+                        print("Only loss is nan")
+                        exit()
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
