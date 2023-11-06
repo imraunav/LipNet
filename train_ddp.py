@@ -83,6 +83,9 @@ class TrainerDDP:
                 vid_len = vid_len.to(self.gpu_id)
                 align_len = align_len.to(self.gpu_id)
                 y = self.model(vid)
+                y = torch.argmax(y, dim=2)
+                if hyperparameters.debug:
+                    print("Model out : ", y)
                 loss = self.crit(
                     y.transpose(0, 1),
                     align,
@@ -92,10 +95,9 @@ class TrainerDDP:
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
-                if epoch < 1:
+                if hyperparameters.debug:
                     print("Loss : ", loss.item())
                 epoch_loss += loss.item()
-                y = torch.argmax(y, dim=2)
             for tru, pre in zip(align.tolist(), y.tolist()):
                 true_txt = self.ctcdecoder.ctc_decode(tru)
                 pred_txt = self.ctcdecoder.ctc_decode(pre)
