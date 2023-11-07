@@ -5,7 +5,6 @@ from preprocessing import HorizontalFlip, get_frames_pkl, load_align, TokenConv,
 import numpy as np
 import cv2
 
-
 class LipDataset(Dataset):
     def __init__(self, dataset_path, vid_pad=75, align_pad=40, phase="train") -> None:
         super().__init__()
@@ -60,11 +59,9 @@ class LipDataset(Dataset):
         align_len = len(align)
         vid = padding(vid, self.vid_pad)
         align = padding(align, self.align_pad)
-        vid = torch.Tensor(vid)
-        vid = (vid - vid.mean([1, 2])) / vid.std([1, 2])  # normalization per channel
 
         return (
-            vid,
+            torch.Tensor(vid)/255.0, # normalization
             torch.Tensor(align),
             vid_len,
             align_len,

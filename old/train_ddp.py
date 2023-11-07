@@ -15,12 +15,14 @@ from preprocessing import TokenConv, wer
 from utils import LipDataset
 from model import LipNet
 
+
 # Each process control a single gpu
 def ddp_setup(rank: int, world_size: int):
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "54321"  # select any idle port on your machine
 
     init_process_group(backend="nccl", rank=rank, world_size=world_size)
+
 
 def dataloader_ddp(
     trainset: Dataset,
@@ -36,6 +38,8 @@ def dataloader_ddp(
     )
 
     return trainloader, sampler_train
+
+
 class TrainerDDP:
     def __init__(
         self,
@@ -58,7 +62,7 @@ class TrainerDDP:
         self.optimizer = optim.Adam(
             self.model.parameters(), lr=hyperparameters.base_learning_rate
         )
-        self.crit = nn.CTCLoss(blank=0, zero_infinity=True)
+        self.crit = nn.CTCLoss()
         self.ctcdecoder = TokenConv()
 
     def _save_checkpoint(self, epoch: int, train_wer: list):
@@ -80,7 +84,7 @@ class TrainerDDP:
                 align_len = align_len.to(self.gpu_id)
                 y = self.model(vid)
                 loss = self.crit(
-                    y,
+                    y.transpose(0, 1),
                     align,
                     vid_len.view(-1),
                     align_len.view(-1),
@@ -119,7 +123,6 @@ class TrainerDDP:
                 self._save_checkpoint(epoch, train_wer)
         # save last epoch
         self._save_checkpoint(max_epochs - 1, train_wer)
-
 
 
 def main(rank, world_size):
