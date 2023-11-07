@@ -129,7 +129,7 @@ def main(rank, world_size):
     train_dataloader, train_sampler = dataloader_ddp(
         train_dataset, hyperparameters.batch_size
     )
-    model = LipNet().cuda(rank)
+    model = LipNet().to(rank)
     # model.load_state_dict(torch.load(hyperparameters.weights)) # pretrained
     trainer = TrainerDDP(
         gpu_id=rank,
