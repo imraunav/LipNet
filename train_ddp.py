@@ -8,6 +8,7 @@ from torch.utils.data.distributed import (
 )  # Distribute data across multiple gpus
 from torch.distributed import init_process_group, destroy_process_group
 from torch.utils.data import Dataset, DataLoader
+from torch.distributed.optim import ZeroRedundancyOptimizer
 import numpy as np
 
 import hyperparameters
@@ -59,9 +60,14 @@ class TrainerDDP:
 
         self.sampler_train = sampler_train
 
-        self.optimizer = optim.Adam(
-            self.model.parameters(), lr=hyperparameters.base_learning_rate
+        self.optimizer = ZeroRedundancyOptimizer(
+            self.model.parameters(),
+            optimizer_class=optim.Adam,
+            lr=hyperparameters.base_learning_rate
         )
+        # self.optimizer = optim.Adam(
+        #     self.model.parameters(), lr=hyperparameters.base_learning_rate
+        # )
         self.crit = nn.CTCLoss(blank=0, zero_infinity=True)
         self.ctcdecoder = TokenConv()
 
