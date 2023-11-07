@@ -15,12 +15,14 @@ from preprocessing import TokenConv, wer
 from utils import LipDataset
 from model import LipNet
 
+
 # Each process control a single gpu
 def ddp_setup(rank: int, world_size: int):
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "54321"  # select any idle port on your machine
 
     init_process_group(backend="nccl", rank=rank, world_size=world_size)
+
 
 def dataloader_ddp(
     trainset: Dataset,
@@ -36,6 +38,8 @@ def dataloader_ddp(
     )
 
     return trainloader, sampler_train
+
+
 class TrainerDDP:
     def __init__(
         self,
@@ -62,8 +66,9 @@ class TrainerDDP:
         self.ctcdecoder = TokenConv()
 
     def _save_checkpoint(self, epoch: int, train_wer: list):
+        print("Checkpoint reached!")
         ckp = self.model.module.state_dict()
-        model_path = f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt.pt"
+        model_path = f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt"
         torch.save(ckp, model_path)
 
     def train(self, max_epochs: int):
@@ -104,12 +109,12 @@ class TrainerDDP:
                 pred_txt = self.ctcdecoder.ctc_decode(pre)
 
                 train_wer.extend(wer(pred_txt, true_txt))
-                if epoch % hyperparameters.display:
-                    print(f"Epoch [GPU:{self.gpu_id}]: ", epoch)
+                if epoch % hyperparameters.display == 0:
+                    print(f"[GPU:{self.gpu_id}] Epoch : ", epoch)
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
             print(
-                f"Epoch [GPU:{self.gpu_id}]: ",
+                f"[GPU:{self.gpu_id}] Epoch : ",
                 epoch,
                 "Loss : ",
                 epoch_loss / len(self.trainloader),
@@ -119,7 +124,6 @@ class TrainerDDP:
                 self._save_checkpoint(epoch, train_wer)
         # save last epoch
         self._save_checkpoint(max_epochs - 1, train_wer)
-
 
 
 def main(rank, world_size):
