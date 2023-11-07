@@ -55,13 +55,13 @@ class LipDataset(Dataset):
             vid = HorizontalFlip(vid)
 
         vid_len = len(vid)
-        for i, v in enumerate(vid):
-            vid[i] = cv2.resize(v, (128, 64))
+        # for i, v in enumerate(vid):
+        #     vid[i] = cv2.resize(v, (128, 64))
         align_len = len(align)
         vid = padding(vid, self.vid_pad)
         align = padding(align, self.align_pad)
-        vid = torch.Tensor(vid)
-        vid = (vid - vid.mean([1, 2])) / vid.std([1, 2])  # normalization per channel
+        vid = torch.Tensor(vid)/255
+        # vid = (vid - vid.mean([1, 2])) / vid.std([1, 2])  # normalization per channel
 
         return (
             vid,

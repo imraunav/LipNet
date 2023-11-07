@@ -12,10 +12,10 @@ class LipNet(nn.Module):
         self.conv1 = nn.Conv3d(3, 32, (3, 5, 5), (1, 2, 2), (1, 2, 2))
         self.pool1 = nn.MaxPool3d((1, 2, 2), (1, 2, 2))
 
-        self.conv2 = nn.Conv3d(32, 64, (3, 5, 5), (1, 2, 2), (1, 2, 2))
+        self.conv2 = nn.Conv3d(32, 64, (3, 5, 5), (1, 1, 1), (1, 2, 2))
         self.pool2 = nn.MaxPool3d((1, 2, 2), (1, 2, 2))
 
-        self.conv3 = nn.Conv3d(64, 96, (3, 3, 3), (1, 2, 2), (1, 1, 1))
+        self.conv3 = nn.Conv3d(64, 96, (3, 3, 3), (1, 1, 1), (1, 1, 1))
         self.pool3 = nn.MaxPool3d((1, 2, 2), (1, 2, 2))
 
         self.gru1 = nn.GRU(96 * 3 * 6, 256, 1, bidirectional=True)
@@ -85,7 +85,6 @@ class LipNet(nn.Module):
 
         self.gru1.flatten_parameters()
         self.gru2.flatten_parameters()
-
         x, h = self.gru1(x)
         x = self.dropout(x)
         x, h = self.gru2(x)
