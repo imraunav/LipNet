@@ -87,8 +87,8 @@ class TrainerDDP:
                 )
                 y = torch.argmax(y, dim=2)
                 if hyperparameters.debug:
-                    print("Model out : ", y)
-                    print("Loss : ", loss.item())
+                    # print("Model out : ", y)
+                    # print("Loss : ", loss.item())
                     if torch.any(torch.isnan(y)).item():
                         print("Pred labels have nan")
                         exit()
