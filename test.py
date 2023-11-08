@@ -2,7 +2,7 @@ import torch
 import os
 import numpy as np
 
-from utils import LipDataset
+from utils import LipDatasetTest
 from model import LipNet
 from preprocessing import TokenConv, wer
 
@@ -15,8 +15,8 @@ def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = LipNet().to(device)
     model.load_state_dict(torch.load(best_weight_dir, map_location=device))
-    dataset = LipDataset('./dataset', phase='test')
-    loader = torch.utils.data.Dataloader(dataset, batch_size=100, num_workers=16)
+    dataset = LipDatasetTest('./dataset', phase='test')
+    loader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=2)
     ctcdecoder = TokenConv()
     test_wer = []
     model.eval()
@@ -28,10 +28,12 @@ def main():
         y = model(vid)
         y = torch.argmax(y, dim=2)
         for tru, pre in zip(align.tolist(), y.tolist()):
-            true_txt = ctcdecoder.ctc_decode(tru)
+            true_txt = ctcdecoder.decode(tru)
+            true_txt = "".join(true_txt)
             pred_txt = ctcdecoder.ctc_decode(pre)
-        
-            test_wer.extend(wer(pred_txt, true_txt))
+            this_wer = wer(pred_txt, true_txt)
+            print(this_wer)
+            test_wer.extend(this_wer)
             print("True: ", true_txt)
             print("Pred: ", pred_txt)
     print("WER: ", np.mean(test_wer))
