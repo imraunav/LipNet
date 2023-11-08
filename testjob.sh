@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=16 #number of cores per node
 #SBATCH --time=01:00:00 
 #SBATCH --job-name=LipNet-test  #change name of ur job
-#SBATCH --output=output  #change name of ur output file
+#SBATCH --output=output.test  #change name of ur output file
 #SBATCH --partition=gpu  #there are various partition. U can change various GPUs
 #SBATCH --gres=gpu:1 #same as above
 #SBATCH --mail-type=BEGIN,END,FAIL
