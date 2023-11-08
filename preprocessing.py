@@ -22,8 +22,8 @@ class TokenConv:
     def encode(self, charecters: list) -> list[str]:
         return [self.char2int.get(c, "") for c in charecters]
 
-    # def decode(self, ints: list) -> list:
-    #     return [self.int2char.get(i) for i in ints]  # __default= ?
+    def decode(self, ints: list) -> list:
+        return [self.int2char.get(i) for i in ints]  # __default= ?
 
     def ctc_decode(self, arr: list) -> str:
         decoded_sequence = []
@@ -134,7 +134,7 @@ def padding(array, length):
 
 
 def wer(predict, truth) -> list:
-    word_pairs = [(p[0].split(" "), p[1].split(" ")) for p in zip(predict, truth)]
+    word_pairs = [(p[0], p[1]) for p in zip(predict.split(" "), truth.split(" "))]
     wer = [1.0 * editdistance.eval(p[0], p[1]) / len(p[1]) for p in word_pairs]
     return wer
 
