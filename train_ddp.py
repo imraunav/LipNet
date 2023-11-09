@@ -56,6 +56,7 @@ class TrainerDDP:
         self.gpu_id = gpu_id
         print(f"Initializing trainer on GPU {gpu_id}")
         self.model = DDP(model, device_ids=[gpu_id], output_device=gpu_id)
+        self.model.load_state_dict(torch.load(sorted(os.listdir("./weights"))[-1]))
         self.trainloader = trainloader
 
         self.sampler_train = sampler_train
@@ -63,7 +64,7 @@ class TrainerDDP:
         self.optimizer = ZeroRedundancyOptimizer(
             self.model.parameters(),
             optimizer_class=optim.Adam,
-            lr=hyperparameters.base_learning_rate
+            lr=hyperparameters.base_learning_rate,
         )
         # self.optimizer = optim.Adam(
         #     self.model.parameters(), lr=hyperparameters.base_learning_rate
@@ -77,7 +78,7 @@ class TrainerDDP:
         model_path = f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt"
         torch.save(ckp, model_path)
 
-    def train(self, max_epochs: int):
+    def train(self, max_epochs: int, start_epoch: int = 0):
         self.model.train()
         train_wer = []
         for epoch in range(max_epochs):
@@ -147,7 +148,7 @@ def main(rank, world_size):
         trainloader=train_dataloader,
         sampler_train=train_sampler,
     )
-    trainer.train(hyperparameters.max_epoch)
+    trainer.train(hyperparameters.max_epoch, hyperparameters.start_epoch)
     destroy_process_group()  # clean up
 
 
