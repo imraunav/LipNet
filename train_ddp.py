@@ -141,7 +141,7 @@ def main(rank, world_size):
         train_dataset, hyperparameters.batch_size
     )
     model = LipNet().to(rank)
-    model.load_state_dict(torch.load(hyperparameters.weights))
+    model.load_state_dict(torch.load(hyperparameters.weights, map_location=rank))
     trainer = TrainerDDP(
         gpu_id=rank,
         model=model,
