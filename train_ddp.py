@@ -56,7 +56,9 @@ class TrainerDDP:
         self.gpu_id = gpu_id
         print(f"Initializing trainer on GPU {gpu_id}")
         self.model = DDP(model, device_ids=[gpu_id], output_device=gpu_id)
-        self.model.load_state_dict(torch.load(hyperparameters.weights))
+        model.load_state_dict(
+            torch.load(hyperparameters.weights, map_location=torch.device(gpu_id))
+        )
         self.trainloader = trainloader
 
         self.sampler_train = sampler_train
@@ -141,9 +143,6 @@ def main(rank, world_size):
         train_dataset, hyperparameters.batch_size
     )
     model = LipNet().to(rank)
-    model.load_state_dict(
-        torch.load(hyperparameters.weights, map_location=torch.device(rank))
-    )
     trainer = TrainerDDP(
         gpu_id=rank,
         model=model,
