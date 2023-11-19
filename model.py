@@ -94,6 +94,7 @@ class LipNet(nn.Module):
         x = x.permute(1, 0, 2).contiguous()
         return F.log_softmax(x, dim=-1)
 
+
 class LipNet_uni(nn.Module):
     def __init__(self, dropout_p=0.5):
         super().__init__()
@@ -182,6 +183,7 @@ class LipNet_uni(nn.Module):
         x = x.permute(1, 0, 2).contiguous()
         return F.log_softmax(x, dim=-1)
 
+
 class LipNet_conv2d(nn.Module):
     def __init__(self, dropout_p=0.5):
         super().__init__()
@@ -237,8 +239,12 @@ class LipNet_conv2d(nn.Module):
                 init.constant_(m.bias_ih_l0_reverse[i : i + 256], 0)
 
     def forward(self, x):
+        B = x.size(0)
+        T = x.size(1)
         # (B, T, H, W, C)->(B, T, C, H, W)
         x = x.permute(0, 1, 4, 2, 3).contiguous()
+        # (B, T, C, H, W)->(B*T, C, H, W)
+        x = x.view(B * T, x.size(2), x.size(3), x.size(4))
         x = self.conv1(x)
         x = self.relu(x)
         x = self.dropout2d(x)
@@ -253,7 +259,8 @@ class LipNet_conv2d(nn.Module):
         x = self.relu(x)
         x = self.dropout2d(x)
         x = self.pool3(x)
-
+        # (B*T, C, H, W) -> (B, T, C, H, W)
+        x = x.view(B, T, x.size(2), x.size(3), x.size(4))
         # (B, T, C, H, W)->(T, B, C, H, W)
         x = x.permute(1, 0, 2, 3, 4).contiguous()
         # (T, B, C, H, W)->(T, B, C*H*W)
@@ -269,6 +276,3 @@ class LipNet_conv2d(nn.Module):
         x = self.FC(x)
         x = x.permute(1, 0, 2).contiguous()
         return F.log_softmax(x, dim=-1)
-
-
-
