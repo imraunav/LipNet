@@ -187,7 +187,7 @@ class LipNet_uni(nn.Module):
 class LipNet_conv2d(nn.Module):
     def __init__(self, dropout_p=0.5):
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 32, (5, 5), (2, 2), (1, 2, 2))
+        self.conv1 = nn.Conv2d(3, 32, (5, 5), (2, 2), (2, 2))
         self.pool1 = nn.MaxPool2d((2, 2), (1, 2, 2))
 
         self.conv2 = nn.Conv2d(32, 64, (5, 5), (1, 1), (2, 2))
