@@ -114,7 +114,7 @@ class TrainerDDP:
                 self.optimizer.step()
                 epoch_loss += loss.item()
             for tru, pre in zip(align.tolist(), y.tolist()):
-                true_txt = self.ctcdecoder.decode(tru)
+                true_txt = "".join(self.ctcdecoder.decode(tru))
                 pred_txt = self.ctcdecoder.ctc_decode(pre)
 
                 train_wer.extend(wer(pred_txt, true_txt))
