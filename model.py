@@ -140,13 +140,13 @@ class LipNet_uni(nn.Module):
                 )
                 init.orthogonal_(m.weight_hh_l0[i : i + 256])
                 init.constant_(m.bias_ih_l0[i : i + 256], 0)
-                init.uniform_(
-                    m.weight_ih_l0_reverse[i : i + 256],
-                    -math.sqrt(3) * stdv,
-                    math.sqrt(3) * stdv,
-                )
-                init.orthogonal_(m.weight_hh_l0_reverse[i : i + 256])
-                init.constant_(m.bias_ih_l0_reverse[i : i + 256], 0)
+                # init.uniform_(
+                #     m.weight_ih_l0_reverse[i : i + 256],
+                #     -math.sqrt(3) * stdv,
+                #     math.sqrt(3) * stdv,
+                # )
+                # init.orthogonal_(m.weight_hh_l0_reverse[i : i + 256])
+                # init.constant_(m.bias_ih_l0_reverse[i : i + 256], 0)
 
     def forward(self, x):
         # (B, T, H, W, C)->(B, C, T, H, W)
@@ -237,25 +237,25 @@ class LipNet_conv2d(nn.Module):
                 init.constant_(m.bias_ih_l0_reverse[i : i + 256], 0)
 
     def forward(self, x):
-        # (B, T, H, W, C)->(B, C, T, H, W)
-        x = x.permute(0, 4, 1, 2, 3).contiguous()
+        # (B, T, H, W, C)->(B, T, C, H, W)
+        x = x.permute(0, 1, 4, 2, 3).contiguous()
         x = self.conv1(x)
         x = self.relu(x)
-        x = self.dropout3d(x)
+        x = self.dropout2d(x)
         x = self.pool1(x)
 
         x = self.conv2(x)
         x = self.relu(x)
-        x = self.dropout3d(x)
+        x = self.dropout2d(x)
         x = self.pool2(x)
 
         x = self.conv3(x)
         x = self.relu(x)
-        x = self.dropout3d(x)
+        x = self.dropout2d(x)
         x = self.pool3(x)
 
-        # (B, C, T, H, W)->(T, B, C, H, W)
-        x = x.permute(2, 0, 1, 3, 4).contiguous()
+        # (B, T, C, H, W)->(T, B, C, H, W)
+        x = x.permute(1, 0, 2, 3, 4).contiguous()
         # (T, B, C, H, W)->(T, B, C*H*W)
         x = x.view(x.size(0), x.size(1), -1)
 
