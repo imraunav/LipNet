@@ -260,7 +260,7 @@ class LipNet_conv2d(nn.Module):
         x = self.dropout2d(x)
         x = self.pool3(x)
         # (B*T, C, H, W) -> (B, T, C, H, W)
-        x = x.view(B, T, x.size(2), x.size(3), x.size(4))
+        x = x.view(B, T, x.size(1), x.size(2), x.size(3))
         # (B, T, C, H, W)->(T, B, C, H, W)
         x = x.permute(1, 0, 2, 3, 4).contiguous()
         # (T, B, C, H, W)->(T, B, C*H*W)
