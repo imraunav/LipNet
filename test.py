@@ -7,7 +7,8 @@ from model import LipNet
 from preprocessing import TokenConv, wer
 
 weight_dir = "./weights"
-best_weight_dir = os.path.join(weight_dir, sorted(os.listdir(weight_dir))[-1])
+# best_weight_dir = os.path.join(weight_dir, sorted(os.listdir(weight_dir))[-1])
+best_weight_dir = "./weights/lipnet_3600_wer:0.0414.pt"
 
 
 
