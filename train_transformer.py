@@ -92,6 +92,8 @@ class TrainerDDP:
                 align = align.to(self.gpu_id)
                 vid_len = vid_len.to(self.gpu_id)
                 align_len = align_len.to(self.gpu_id)
+                print("align: ", align.shape)
+                print("align_len: ", align_len.shape)
                 y = self.model(vid, training=True, tgt=align)
                 loss = self.crit(
                     y.permute(1, 0, 2).contiguous(),
