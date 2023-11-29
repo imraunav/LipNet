@@ -278,6 +278,27 @@ class LipNet_conv2d(nn.Module):
         return F.log_softmax(x, dim=-1)
 
 
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        position = torch.arange(max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(max_len, 1, d_model)
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Arguments:
+            x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
+        """
+        x = x + self.pe[:x.size(0)]
+        return self.dropout(x)
+
 class LipFormer(nn.Module):
     def __init__(self, dropout_p=0.5) -> None:
         super().__init__()
@@ -309,7 +330,9 @@ class LipFormer(nn.Module):
 
         self.relu = nn.ReLU(inplace=True)
         self.dropout = nn.Dropout(self.dropout_p)
-        self.dropout2d = nn.Dropout2d(self.dropout_p)
+        # self.dropout2d = nn.Dropout2d(self.dropout_p)
+        self.dropout3d = nn.Dropout3d(self.dropout_p)
+        self.pos_enc = PositionalEncoding(d_model=self.emb_dim, dropout=dropout_p)
 
     def forward_cnn(self, x):
         x = self.conv1(x)
@@ -329,15 +352,19 @@ class LipFormer(nn.Module):
         return x
 
     def forward_train_transformer(self, x, tgt):
-        tgt = self.output_embeddding(tgt)
+        x = self.pos_enc(x)
+        tgt = self.output_embeddding(tgt) * math.sqrt(self.emb_dim)
+        tgt = self.pos_enc(tgt)
         y = self.transformer(x, tgt)
         return y
 
     def forward_transformer(self, x):
         B = x.size(1)
         T = x.size(0)
+        x = self.pos_enc(x)
         y_hat = torch.zeros((T,B,1))
-        y_hat = self.output_embeddding(y_hat)
+        y_hat = self.output_embeddding(y_hat) * math.sqrt(self.emb_dim)
+        y_hat = self.pos_enc(y_hat)
         for t in range(T):
             y = self.transformer(x[t], y_hat[t])
             y_hat = torch.cat((y_hat, y), dim=0)
