@@ -23,7 +23,8 @@ class TokenConv:
         return [self.char2int.get(c, "") for c in charecters]
 
     def decode(self, ints: list) -> list:
-        return [self.int2char.get(i) for i in ints]  # __default= ?
+        decoded_seq = [self.int2char.get(i) for i in ints]  # __default= ?
+        return "".join(decoded_seq)
 
     def ctc_decode(self, arr: list) -> str:
         decoded_sequence = []
