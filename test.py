@@ -3,18 +3,20 @@ import os
 import numpy as np
 
 from utils import LipDatasetTest
-from model import LipNet
+from model import LipNet, LipNet_conv2d, LipNet_uni
 from preprocessing import TokenConv, wer
 
 weight_dir = "./weights"
 # best_weight_dir = os.path.join(weight_dir, sorted(os.listdir(weight_dir))[-1])
-best_weight_dir = "./weights/lipnet_3600_wer:0.0414.pt"
+# best_weight_dir = "./weights/lipnet_3600_wer:0.0414.pt"
+best_weight_dir = "./weights/lipnet-conv2d_2000_wer:0.8353.pt"
 
 
 
 def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    model = LipNet().to(device)
+    # model = LipNet().to(device)
+    model = LipNet_conv2d()
     model.load_state_dict(torch.load(best_weight_dir, map_location=device))
     dataset = LipDatasetTest('./dataset', phase='test')
     loader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=2)
