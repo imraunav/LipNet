@@ -276,3 +276,90 @@ class LipNet_conv2d(nn.Module):
         x = self.FC(x)
         x = x.permute(1, 0, 2).contiguous()
         return F.log_softmax(x, dim=-1)
+
+
+class LipFormer(nn.Module):
+    def __init__(self, dropout_p=0.5) -> None:
+        super().__init__()
+        self.conv1 = nn.Conv3d(3, 32, (3, 5, 5), (1, 2, 2), (1, 2, 2))
+        self.pool1 = nn.MaxPool3d((1, 2, 2), (1, 2, 2))
+
+        self.conv2 = nn.Conv3d(32, 64, (3, 5, 5), (1, 1, 1), (1, 2, 2))
+        self.pool2 = nn.MaxPool3d((1, 2, 2), (1, 2, 2))
+
+        self.conv3 = nn.Conv3d(64, 96, (3, 3, 3), (1, 1, 1), (1, 1, 1))
+        self.pool3 = nn.MaxPool3d((1, 2, 2), (1, 2, 2))
+
+        # self.gru1 = nn.GRU(96 * 3 * 6, 256, 1, bidirectional=True)
+        # self.gru2 = nn.GRU(512, 256, 1, bidirectional=True)
+        self.transformer = nn.Transformer(
+            d_model=96 * 3 * 6,
+            nhead=8,
+            num_encoder_layers=6,
+            num_decoder_layers=6,
+            dim_feedforward=512,
+            dropout=dropout_p,
+            activation=F.gelu,
+        )
+        self.emb_dim = 96 * 3 * 6
+        self.output_embeddding = nn.Embedding(27 + 1, 96 * 3 * 6)
+
+        self.FC = nn.Linear(96 * 3 * 6, 27 + 1)
+        self.dropout_p = dropout_p
+
+        self.relu = nn.ReLU(inplace=True)
+        self.dropout = nn.Dropout(self.dropout_p)
+        self.dropout2d = nn.Dropout2d(self.dropout_p)
+
+    def forward_cnn(self, x):
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.dropout3d(x)
+        x = self.pool1(x)
+
+        x = self.conv2(x)
+        x = self.relu(x)
+        x = self.dropout3d(x)
+        x = self.pool2(x)
+
+        x = self.conv3(x)
+        x = self.relu(x)
+        x = self.dropout3d(x)
+        x = self.pool3(x)
+        return x
+
+    def forward_train_transformer(self, x, tgt):
+        tgt = self.output_embeddding(tgt)
+        y = self.transformer(x, tgt)
+        return y
+
+    def forward_transformer(self, x):
+        B = x.size(1)
+        T = x.size(0)
+        y_hat = torch.zeros((T,B,1))
+        y_hat = self.output_embeddding(y_hat)
+        for t in range(T):
+            y = self.transformer(x[t], y_hat[t])
+            y_hat = torch.cat((y_hat, y), dim=0)
+        return y_hat
+
+    def forward(self, x, training=False, tgt=None):
+        # (B, T, H, W, C)->(B, C, T, H, W)
+        x = x.permute(0, 4, 1, 2, 3).contiguous()
+        x = self.forward_cnn(x)  # feature maps
+
+        # (B, C, T, H, W)->(T, B, C, H, W)
+        x = x.permute(2, 0, 1, 3, 4).contiguous()  # change to squence
+        # (T, B, C, H, W)->(T, B, C*H*W)
+        x = x.view(x.size(0), x.size(1), -1)  # change to feature vectors
+
+        # how to get tgt to have same dimention as src ???
+        if training:
+            assert tgt is not None
+            x = self.forward_train_transformer(x, tgt)
+        else:
+            x = self.forward_transformer(x)
+
+        x = self.FC(x)
+        x = x.permute(1, 0, 2).contiguous()  # (B, T, predictions)
+        return F.log_softmax(x, dim=-1)
