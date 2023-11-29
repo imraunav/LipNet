@@ -16,7 +16,7 @@ best_weight_dir = "./weights/lipnet-conv2d_2000_wer:0.8353.pt"
 def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     # model = LipNet().to(device)
-    model = LipNet_conv2d()
+    model = LipNet_conv2d().to(device)
     model.load_state_dict(torch.load(best_weight_dir, map_location=device))
     dataset = LipDatasetTest('./dataset', phase='test')
     loader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=2)
