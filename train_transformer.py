@@ -77,7 +77,7 @@ class TrainerDDP:
     def _save_checkpoint(self, epoch: int, train_wer: list):
         print("Checkpoint reached!")
         ckp = self.model.module.state_dict()
-        model_path = f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt"
+        model_path = f"./weights/lipnet-transformer_{epoch}_wer:{np.mean(train_wer):.4f}.pt"
         torch.save(ckp, model_path)
 
     def train(self, max_epochs: int, start_epoch: int = 0):
