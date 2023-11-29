@@ -123,7 +123,7 @@ class TrainerDDP:
                 pred_txt = self.ctcdecoder.ctc_decode(pre)
 
                 train_wer.extend(wer(pred_txt, true_txt))
-                if epoch % hyperparameters.display == 0 and epoch < 50:
+                if epoch % hyperparameters.display == 0 or epoch < 50:
                     print(f"[GPU:{self.gpu_id}] Epoch : ", epoch)
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
