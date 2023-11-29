@@ -352,8 +352,8 @@ class LipFormer(nn.Module):
         return x
 
     def forward_train_transformer(self, x, tgt):
-        print(tgt.shape)
-        # tgt = tgt.permute()
+        # print(tgt.shape)
+        tgt = tgt.permute(1, 0).contiguous()
         x = self.pos_enc(x)
         tgt = self.output_embeddding(tgt.int()) * math.sqrt(self.emb_dim)
         tgt = self.pos_enc(tgt)
