@@ -97,7 +97,7 @@ class TrainerDDP:
                 # print("align: ", align.shape)
                 # print("align_len: ", align_len.shape)
                 y = self.model(vid, training=True, tgt=align)
-                print("y: ", y.shape)
+                # print("y: ", y.shape)
                 loss = self.crit(
                     y.permute(1, 0, 2).contiguous(),
                     align,
@@ -123,7 +123,7 @@ class TrainerDDP:
                 pred_txt = self.ctcdecoder.ctc_decode(pre)
 
                 train_wer.extend(wer(pred_txt, true_txt))
-                if epoch % hyperparameters.display == 0:
+                if epoch % hyperparameters.display == 0 and epoch < 50:
                     print(f"[GPU:{self.gpu_id}] Epoch : ", epoch)
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
