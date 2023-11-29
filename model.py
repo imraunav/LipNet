@@ -353,7 +353,7 @@ class LipFormer(nn.Module):
 
     def forward_train_transformer(self, x, tgt):
         x = self.pos_enc(x)
-        tgt = self.output_embeddding(tgt) * math.sqrt(self.emb_dim)
+        tgt = self.output_embeddding(tgt.int()) * math.sqrt(self.emb_dim)
         tgt = self.pos_enc(tgt)
         y = self.transformer(x, tgt)
         return y
@@ -363,7 +363,7 @@ class LipFormer(nn.Module):
         T = x.size(0)
         x = self.pos_enc(x)
         y_hat = torch.zeros((T,B,1))
-        y_hat = self.output_embeddding(y_hat) * math.sqrt(self.emb_dim)
+        y_hat = self.output_embeddding(y_hat.int()) * math.sqrt(self.emb_dim)
         y_hat = self.pos_enc(y_hat)
         for t in range(T):
             y = self.transformer(x[t], y_hat[t])
