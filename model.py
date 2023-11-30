@@ -455,7 +455,7 @@ class LipFormerDecoder(nn.Module):
         y_hat = self.pos_enc(y_hat)
         for t in range(T):
             # y = self.transformer(x[t], y_hat[t])
-            y = self.transformer_decoder(y_hat[t], xx[t])
+            y = self.transformer_decoder(y_hat[t], x[t])
             y_hat = torch.cat((y_hat, y), dim=0)
         return y_hat
     
