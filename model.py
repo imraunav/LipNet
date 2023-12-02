@@ -372,8 +372,9 @@ class LipFormer(nn.Module):
             y_hat = torch.cat((y_hat, y), dim=0)
         return y_hat
 
-    def forward(self, x, training=False, tgt=None):
+    def forward(self, x, training=False, tgt=None, **kwarg):
         # (B, T, H, W, C)->(B, C, T, H, W)
+        print(x.shape)
         x = x.permute(0, 4, 1, 2, 3).contiguous()
         x = self.forward_cnn(x)  # feature maps
 
@@ -387,7 +388,8 @@ class LipFormer(nn.Module):
             assert tgt is not None
             x = self.forward_train_transformer(x, tgt)
         else:
-            x = self.forward_transformer(x)
+            x = self.forward_train_transformer(x, tgt, kwarg.get('mask'))
+            # x = self.forward_transformer(x)
 
         x = self.FC(x)
         x = x.permute(1, 0, 2).contiguous()  # (B, T, predictions)

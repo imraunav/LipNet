@@ -8,7 +8,7 @@ from preprocessing import TokenConv, wer
 
 best_weight_dir = "./weights/lipnet-transformer_1400_wer:0.2440.pt"
 
-max_length = 28
+max_length = 75
 def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = LipFormer().to(device)
@@ -30,7 +30,7 @@ def main():
             mask[:, i + 1 :] = True
 
             with torch.no_grad():
-                pred, _ = model(vid[0, i], caption, mask)
+                pred, _ = model(vid[0, i], training=True, tgt=caption, mask=mask)
 
             pred_token = pred.argmax(dim=-1)[:, i].item()
             target_indexes[i + 1] = pred_token
