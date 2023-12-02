@@ -13,7 +13,7 @@ def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = LipFormer().to(device)
     model.load_state_dict(torch.load(best_weight_dir, map_location=device))
-    dataset = LipDatasetTest('./dataset', phase='test')
+    dataset = LipDatasetTest('./dataset', phase='test', vid_pad=75, align_pad=75)
     loader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=2)
     ctcdecoder = TokenConv()
     test_wer = []
