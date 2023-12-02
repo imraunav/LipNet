@@ -9,8 +9,8 @@ from preprocessing import TokenConv, wer
 weight_dir = "./weights"
 # best_weight_dir = os.path.join(weight_dir, sorted(os.listdir(weight_dir))[-1])
 # best_weight_dir = "./weights/lipnet_3600_wer:0.0414.pt"
-best_weight_dir = "./weights/lipnet_1300_wer:0.0419.pt"
-# best_weight_dir = "./weights/lipnet-conv2d_2000_wer:0.8353.pt"
+# best_weight_dir = "./weights/lipnet_1300_wer:0.0419.pt"
+best_weight_dir = "./weights/lipnet-conv2d_2000_wer:0.8353.pt"
 # best_weight_dir = "weights/lipnet-conv2d_1300_wer:0.9029.pt"
 # best_weight_dir = "./weights/lipnet-uni_1300_wer:0.9976.pt"
 
@@ -19,7 +19,7 @@ best_weight_dir = "./weights/lipnet_1300_wer:0.0419.pt"
 def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = LipNet().to(device)
-    # model = LipNet_conv2d().to(device)
+    model = LipNet_conv2d().to(device)
     # model = LipNet_uni().to(device)
     model.load_state_dict(torch.load(best_weight_dir, map_location=device))
     dataset = LipDatasetTest('./dataset', phase='test')
