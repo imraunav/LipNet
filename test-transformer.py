@@ -30,7 +30,7 @@ def main():
             mask[:, i + 1 :] = True
 
             with torch.no_grad():
-                pred, _ = model(vid[0, i], training=True, tgt=caption, mask=mask)
+                pred, _ = model(vid[0, i], training=False, tgt=caption, mask=mask)
 
             pred_token = pred.argmax(dim=-1)[:, i].item()
             target_indexes[i + 1] = pred_token

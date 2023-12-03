@@ -15,6 +15,7 @@ import hyperparameters
 from preprocessing import TokenConv, wer
 from utils import LipDataset
 from model import LipNet
+import pickle
 
 
 # Each process control a single gpu
@@ -77,12 +78,13 @@ class TrainerDDP:
     def _save_checkpoint(self, epoch: int, train_wer: list):
         print("Checkpoint reached!")
         ckp = self.model.module.state_dict()
-        model_path = f"./weights/lipnet_{epoch}_wer:{np.mean(train_wer):.4f}.pt"
+        model_path = f"./weights/lipnet_re_{epoch}_wer:{np.mean(train_wer):.4f}.pt"
         torch.save(ckp, model_path)
 
     def train(self, max_epochs: int, start_epoch: int = 0):
         self.model.train()
         train_wer = []
+        train_loss = []
         for epoch in range(max_epochs):
             epoch_loss = 0
             # https://pytorch.org/docs/stable/data.html#torch.utils.data.distributed.DistributedSampler
@@ -122,12 +124,25 @@ class TrainerDDP:
                     print(f"[GPU:{self.gpu_id}] Epoch : ", epoch)
                     print("True: ", true_txt)
                     print("Pred: ", pred_txt)
-            print(
-                f"[GPU:{self.gpu_id}] Epoch : ",
-                epoch,
-                "Loss : ",
-                epoch_loss / len(self.trainloader),
-            )
+            if self.gpu_id == 0:
+                train_loss.append(epoch_loss / len(self.trainloader))
+                with open("lipnet_train_loss_gpu0.pkl", mode='wb') as f:
+                    pickle.dump(train_loss, f, pickle.HIGHEST_PROTOCOL)
+
+            # with open("lipnet_log.txt", mode='a') as f:
+            #     print(
+            #         f"[GPU:{self.gpu_id}] Epoch : ",
+            #         epoch,
+            #         "Loss : ",
+            #         epoch_loss / len(self.trainloader),
+            #         file=f
+            #     )
+            # print(
+            #     f"[GPU:{self.gpu_id}] Epoch : ",
+            #     epoch,
+            #     "Loss : ",
+            #     epoch_loss / len(self.trainloader),
+            # )
             # only save once on master gpu
             if self.gpu_id == 0 and epoch % hyperparameters.save_every == 0:
                 self._save_checkpoint(epoch, train_wer)
