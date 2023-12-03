@@ -57,9 +57,9 @@ class TrainerDDP:
         self.gpu_id = gpu_id
         print(f"Initializing trainer on GPU {gpu_id}")
         self.model = DDP(model, device_ids=[gpu_id], output_device=gpu_id)
-        model.load_state_dict(
-            torch.load(hyperparameters.weights, map_location=torch.device(gpu_id))
-        )
+        # model.load_state_dict(
+        #     torch.load(hyperparameters.weights, map_location=torch.device(gpu_id))
+        # )
         self.trainloader = trainloader
 
         self.sampler_train = sampler_train
