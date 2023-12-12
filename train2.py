@@ -153,7 +153,7 @@ class TrainerDDP:
 def main(rank, world_size):
     ddp_setup(rank, world_size)  # initialize ddp
 
-    train_dataset = LipDataset(hyperparameters.dataset_path)
+    train_dataset = LipDataset(hyperparameters.dataset_path, hyperparameters.vid_pad, hyperparameters.align_pad)
     train_dataloader, train_sampler = dataloader_ddp(
         train_dataset, hyperparameters.batch_size
     )

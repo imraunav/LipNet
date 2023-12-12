@@ -3,7 +3,7 @@
 dataset_path = "./dataset"
 phase = "train"
 vid_pad = 75
-align_pad = 100
+align_pad = 200
 batch_size = 96//2 #25 #50 #50
 num_workers = 16  # what is this?, number of cores used to load data
 base_learning_rate = 2e-5
