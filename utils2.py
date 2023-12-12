@@ -48,7 +48,7 @@ class LipDataset(Dataset):
         align_path = os.path.join(self.align_path, speaker, fname + ".align")
 
         vid = get_frames_pkl(frames_path)
-        for i in range(vid):
+        for i in range(len(vid)):
             vid[i] = cv2.resize(vid[i], (128, 64))
         align = load_align(align_path)
         align = self.ctccoder.encode(align)
@@ -114,7 +114,7 @@ class LipDatasetTest(Dataset):
         align_path = os.path.join(self.align_path, speaker, fname + ".align")
 
         vid = get_frames_pkl(frames_path)
-        for i in range(vid):
+        for i in range(len(vid)):
             vid[i] = cv2.resize(vid[i], (128, 64))
         align = load_align(align_path)
         align = self.ctccoder.encode(align)
