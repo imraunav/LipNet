@@ -78,7 +78,7 @@ class LipNet(nn.Module):
         x = self.relu(x)
         x = self.dropout3d(x)
         x = self.pool3(x)
-        print(x.shape)
+        # print(x.shape)
         # (B, C, T, H, W)->(T, B, C, H, W)
         x = x.permute(2, 0, 1, 3, 4).contiguous()
         # (T, B, C, H, W)->(T, B, C*H*W)
@@ -86,7 +86,7 @@ class LipNet(nn.Module):
 
         self.gru1.flatten_parameters()
         self.gru2.flatten_parameters()
-        print(x.shape)
+        # print(x.shape)
         x, h = self.gru1(x)
         x = self.dropout(x)
         x, h = self.gru2(x)
