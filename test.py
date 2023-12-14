@@ -16,7 +16,8 @@ weight_dir = "./weights"
 # best_weight_dir = "weights/lipnet-conv2d_1300_wer:0.9029.pt"
 # best_weight_dir = "./weights/lipnet-uni_1300_wer:0.9976.pt"
 # best_weight_dir = "./weights/lipnet_re_7000_wer:0.0732.pt"
-best_weight_dir = "./weights/lipnet_git_400_wer:0.3868.pt"
+# best_weight_dir = "./weights/lipnet_git_400_wer:0.3868.pt"
+best_weight_dir = "./weights/LipNet_unseen_loss_0.44562849402427673_wer_0.1332580699113564_cer_0.06796452465503355.pt"
 
 
 
