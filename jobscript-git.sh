@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -N 1 
-#SBATCH --ntasks-per-node=16 #number of cores per node
+#SBATCH --ntasks-per-node=8 #number of cores per node
 #SBATCH --time=10-00:00:00 
 #SBATCH --job-name=LipNet  #change name of ur job
 #SBATCH --output=output-git  #change name of ur output file
