@@ -2,10 +2,10 @@ import torch
 import os
 import numpy as np
 
-# from utils import LipDatasetTest
-# from model import LipNet, LipNet_conv2d, LipNet_uni
-from utils2 import LipDatasetTest
-from model2 import LipNet
+from utils import LipDatasetTest
+from model import LipNet, LipNet_conv2d, LipNet_uni
+# from utils2 import LipDatasetTest
+# from model2 import LipNet
 from preprocessing import TokenConv, wer
 
 weight_dir = "./weights"
@@ -15,10 +15,10 @@ weight_dir = "./weights"
 # best_weight_dir = "./weights/lipnet-conv2d_2000_wer:0.8353.pt"
 # best_weight_dir = "weights/lipnet-conv2d_1300_wer:0.9029.pt"
 # best_weight_dir = "./weights/lipnet-uni_1300_wer:0.9976.pt"
-# best_weight_dir = "./weights/lipnet_re_7000_wer:0.0732.pt"
+best_weight_dir = "./weights/lipnet_re_100_wer:0.3254.pt"
 # best_weight_dir = "./weights/lipnet_git_400_wer:0.3868.pt"
 # best_weight_dir = "./weights/LipNet_unseen_loss_0.44562849402427673_wer_0.1332580699113564_cer_0.06796452465503355.pt"
-best_weight_dir = "./weights/LipNet_overlap_loss_0.07664558291435242_wer_0.04644484056248762_cer_0.019676921477851092.pt"
+# best_weight_dir = "./weights/LipNet_overlap_loss_0.07664558291435242_wer_0.04644484056248762_cer_0.019676921477851092.pt"
 
 
 def main():
