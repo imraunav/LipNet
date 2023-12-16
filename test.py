@@ -2,10 +2,10 @@ import torch
 import os
 import numpy as np
 
-from utils import LipDatasetTest
-from model import LipNet, LipNet_conv2d, LipNet_uni
-# from utils2 import LipDatasetTest
-# from model2 import LipNet
+# from utils import LipDatasetTest
+# from model import LipNet, LipNet_conv2d, LipNet_uni
+from utils2 import LipDatasetTest
+from model2 import LipNet
 from preprocessing import TokenConv, wer
 
 weight_dir = "./weights"
