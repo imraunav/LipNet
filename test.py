@@ -21,7 +21,7 @@ best_weight_dir = "./weights/lipnet_git_1700_wer:0.0344.pt"
 # best_weight_dir = "./weights/LipNet_unseen_loss_0.44562849402427673_wer_0.1332580699113564_cer_0.06796452465503355.pt"
 # best_weight_dir = "./weights/LipNet_overlap_loss_0.07664558291435242_wer_0.04644484056248762_cer_0.019676921477851092.pt"
 
-@torch.no_grad
+@torch.no_grad()
 def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = LipNet().to(device)
